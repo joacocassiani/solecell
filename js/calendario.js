@@ -1,44 +1,63 @@
-document.addEventListener("DOMContentLoaded", () => {
-  // Obtener las ventas del localStorage
-  const sales = JSON.parse(localStorage.getItem("sales")) || [];
+import { initializeApp } from "https://www.gstatic.com/firebasejs/9.15.0/firebase-app.js";
+import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/9.15.0/firebase-firestore.js";
 
+const firebaseConfig = {
+  apiKey: "AIzaSyB-6CBhIb2PPPoY1Bdw59Qrmre2sGLDWaQ",
+  authDomain: "solecell-2024.firebaseapp.com",
+  projectId: "solecell-2024",
+  storageBucket: "solecell-2024.firebasestorage.app",
+  messagingSenderId: "306473949436",
+  appId: "1:306473949436:web:154f9cdd50148acd901f79",
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+document.addEventListener("DOMContentLoaded", async () => {
   // Calcular los eventos de pagos
   const events = [];
   const dailyTotals = {}; // Objeto para almacenar totales diarios
 
-  sales.forEach((sale) => {
-    const startDate = new Date(sale.saleDate);
-    const payments = sale.payments || 0;
-    const periodicity = sale.periodicity;
-    const paymentAmount = sale.total / payments;
+  try {
+    const salesSnapshot = await getDocs(collection(db, "sales"));
+    const sales = salesSnapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
 
-    for (let i = 0; i < payments; i++) {
-      const paymentDate = new Date(startDate);
+    sales.forEach((sale) => {
+      const startDate = new Date(sale.saleDate);
+      const payments = sale.payments || 0;
+      const periodicity = sale.periodicity;
+      const paymentAmount = sale.total / payments;
 
-      // Calcular la fecha de cada pago según la periodicidad
-      if (periodicity === "Semanal") {
-        paymentDate.setDate(startDate.getDate() + i * 7);
-      } else if (periodicity === "Quincenal") {
-        paymentDate.setDate(startDate.getDate() + i * 15);
-      } else if (periodicity === "Mensual") {
-        paymentDate.setMonth(startDate.getMonth() + i);
+      for (let i = 0; i < payments; i++) {
+        const paymentDate = new Date(startDate);
+
+        // Calcular la fecha de cada pago según la periodicidad
+        if (periodicity === "Semanal") {
+          paymentDate.setDate(startDate.getDate() + i * 7);
+        } else if (periodicity === "Quincenal") {
+          paymentDate.setDate(startDate.getDate() + i * 15);
+        } else if (periodicity === "Mensual") {
+          paymentDate.setMonth(startDate.getMonth() + i);
+        }
+
+        const formattedDate = paymentDate.toISOString().split("T")[0];
+
+        // Agregar el pago al total diario
+        dailyTotals[formattedDate] = (dailyTotals[formattedDate] || 0) + paymentAmount;
+
+        // Agregar un evento al calendario
+        events.push({
+          title: `${sale.clientName} - $${Math.round(paymentAmount)} - ${sale.product}`, // Redondear el monto
+          allDay: true,
+          start: formattedDate,
+          backgroundColor: "#3498db",
+          borderColor: "#2980b9",
+        });
       }
-
-      const formattedDate = paymentDate.toISOString().split("T")[0];
-
-      // Agregar el pago al total diario
-      dailyTotals[formattedDate] = (dailyTotals[formattedDate] || 0) + paymentAmount;
-
-      // Agregar un evento al calendario
-      events.push({
-        title: `${sale.clientName} - $${Math.round(paymentAmount)} - ${sale.product}`, // Redondear el monto
-        allDay: true,
-        start: formattedDate,
-        backgroundColor: "#3498db",
-        borderColor: "#2980b9",
-      });
-    }
-  });
+    });
+  } catch (error) {
+    console.error("Error al obtener las ventas de Firebase:", error);
+  }
 
   // Inicializar el calendario
   const calendarEl = document.getElementById("calendar");

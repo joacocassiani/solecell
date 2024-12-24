@@ -62,6 +62,9 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     // Procesar cada venta filtrada
     filteredSales.forEach((sale) => {
+
+      const status = getSaleStatus(sale);
+      
       if (sale.periodicity === "Mensual") {
         monthlySales++;
       } else if (sale.periodicity === "Quincenal") {
@@ -72,7 +75,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
       totalSales++;
 
-      const status = getSaleStatus(sale);
+      
       const row = document.createElement("tr");
       row.innerHTML = `
       <td>${sale.dni || "Sin DNI"}</td>
@@ -96,9 +99,9 @@ document.addEventListener("DOMContentLoaded", async () => {
     });
 
     // Actualizar valores de las cartas
-    monthlyCounter.textContent = sales.filter((s) => s.periodicity === "Mensual").length;
-    biweeklyCounter.textContent = sales.filter((s) => s.periodicity === "Quincenal").length;
-    weeklyCounter.textContent = sales.filter((s) => s.periodicity === "Semanal").length;
+    monthlyCounter.textContent = monthlySales;
+    biweeklyCounter.textContent = biweeklySales;
+    weeklyCounter.textContent = weeklySales;
   
     // Actualizar el total de ventas en el HTML
     totalSalesElement.textContent = filteredSales.length;

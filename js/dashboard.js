@@ -1,5 +1,31 @@
-document.addEventListener("DOMContentLoaded", () => {
-  const sales = JSON.parse(localStorage.getItem("sales")) || [];
+import { initializeApp } from "https://www.gstatic.com/firebasejs/9.15.0/firebase-app.js";
+import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/9.15.0/firebase-firestore.js";
+
+
+// Configuración de Firebase
+const firebaseConfig = {
+  apiKey: "AIzaSyB-6CBhIb2PPPoY1Bdw59Qrmre2sGLDWaQ",
+  authDomain: "solecell-2024.firebaseapp.com",
+  projectId: "solecell-2024",
+  storageBucket: "solecell-2024.firebasestorage.app",
+  messagingSenderId: "306473949436",
+  appId: "1:306473949436:web:154f9cdd50148acd901f79",
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+const today = new Date().toISOString().split("T")[0];
+
+document.addEventListener("DOMContentLoaded", async () => {
+  const salesCollection = collection(db, "sales"); // Conexión a la colección "sales"
+  const querySnapshot = await getDocs(salesCollection); // Obtener datos desde Firebase
+
+  const sales = querySnapshot.docs.map((doc) => ({
+    id: doc.id,
+    ...doc.data(),
+  }));
+
   const today = new Date().toISOString().split("T")[0];
 
   // Elementos donde se mostrarán los indicadores clave
@@ -22,7 +48,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Procesar cada venta
   sales.forEach((sale) => {
-    const saleDate = new Date().toISOString().split("T")[0]; // Ejemplo de formato correcto
+    const saleDate = new Date(sale.saleDate);
     const payments = sale.payments || 0;
     const periodicity = sale.periodicity;
     const cost = Number(sale.productCost) || 0;
@@ -49,7 +75,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
       const paymentAmount = total / payments;
 
-      if (paymentDate.toISOString().split("T")[0] <= today) {
+      if (paymentDate.toISOString().split("T")[0] === today) {
         totalPagosRealizados += paymentAmount;
       } else {
         totalPagosPendientes += paymentAmount;
@@ -101,89 +127,140 @@ document.addEventListener("DOMContentLoaded", () => {
   pagosHoyEl.textContent = pagosHoy;
   gananciaMarceloEl.textContent = `$${Math.round(gananciaMarcelo).toLocaleString("es-AR")}`;
   gananciaColoEl.textContent = `$${Math.round(gananciaColo).toLocaleString("es-AR")}`;
-
-  // Manejar clics en los botones de WhatsApp
-  todayPaymentsList.addEventListener("click", (e) => {
-    if (e.target.classList.contains("whatsapp-button")) {
-      const phone = e.target.getAttribute("data-phone");
-      const name = e.target.getAttribute("data-name");
-      const amount = e.target.getAttribute("data-amount");
-
-      if (phone) {
-        const message = encodeURIComponent(`Hola ${name}, le recordamos que hoy tiene un pago pendiente de $${amount}.`);
-        const whatsappURL = `https://wa.me/${phone}?text=${message}`;
-        window.open(whatsappURL);
-      } else {
-        alert("Número de teléfono no disponible.");
-      }
-    }
-  });
 });
 
 document.addEventListener("DOMContentLoaded", () => {
-  const sales = JSON.parse(localStorage.getItem("sales")) || [];
-
-  // Elementos del rango de fechas
   const startDateInput = document.getElementById("startDate");
   const endDateInput = document.getElementById("endDate");
   const calculateButton = document.getElementById("calculateRangeProfit");
   const rangeProfitResult = document.getElementById("rangeProfitResult");
 
-  // Función para calcular ganancias en un rango
-  const calculateRangeProfit = (startDate, endDate) => {
+  const normalizeDate = (date) => {
+    const d = new Date(date);
+    return new Date(d.getFullYear(), d.getMonth(), d.getDate());
+  };
+
+  const calculateRangeProfit = async (startDate, endDate) => {
+    // Normalizar fechas
+    const normalizedStart = normalizeDate(startDate);
+    const normalizedEnd = normalizeDate(endDate);
+
+    // Variables para resultados
     let totalCobrado = 0;
     let marceloTotal = 0;
     let coloTotal = 0;
 
-    sales.forEach((sale) => {
-      const payments = sale.payments || 0;
-      const periodicity = sale.periodicity;
-      const cost = Number(sale.productCost) || 0;
-      const total = Number(sale.total) || 0;
+    try {
+      const salesSnapshot = await getDocs(collection(db, "sales"));
+      const sales = salesSnapshot.docs.map((doc) => doc.data());
 
-      for (let i = 0; i < payments; i++) {
-        const paymentDate = new Date(sale.saleDate);
+      // Iterar sobre las ventas
+      sales.forEach((sale) => {
+        const payments = sale.payments || 0;
+        const periodicity = sale.periodicity;
+        const cost = Number(sale.productCost) || 0;
+        const total = Number(sale.total) || 0;
 
-        if (periodicity === "Semanal") paymentDate.setDate(paymentDate.getDate() + i * 7);
-        if (periodicity === "Quincenal") paymentDate.setDate(paymentDate.getDate() + i * 15);
-        if (periodicity === "Mensual") paymentDate.setMonth(paymentDate.getMonth() + i);
+        for (let i = 0; i < payments; i++) {
+          const paymentDate = new Date(sale.saleDate);
 
-        if (paymentDate >= startDate && paymentDate <= endDate) {
-          const paymentAmount = total / payments;
+          if (periodicity === "Semanal") paymentDate.setDate(paymentDate.getDate() + i * 7);
+          if (periodicity === "Quincenal") paymentDate.setDate(paymentDate.getDate() + i * 15);
+          if (periodicity === "Mensual") paymentDate.setMonth(paymentDate.getMonth() + i);
 
-          const marceloShare = ((paymentAmount - cost / payments) * 0.5) + (cost / payments);
-          const coloShare = paymentAmount - marceloShare;
+          const normalizedPaymentDate = normalizeDate(paymentDate);
 
-          totalCobrado += paymentAmount;
-          marceloTotal += marceloShare;
-          coloTotal += coloShare;
+          if (normalizedPaymentDate >= normalizedStart && normalizedPaymentDate <= normalizedEnd) {
+            const paymentAmount = total / payments;
+
+            const marceloShare = ((paymentAmount - cost / payments) * 0.5) + (cost / payments);
+            const coloShare = paymentAmount - marceloShare;
+
+            totalCobrado += paymentAmount;
+            marceloTotal += marceloShare;
+            coloTotal += coloShare;
+          }
         }
-      }
-    });
+      });
 
-    // Mostrar resultados
-    rangeProfitResult.innerHTML = `
-      <p><strong>Total Cobrado:</strong> $${Math.round(totalCobrado).toLocaleString("es-AR")}</p>
-      <p><strong>Ganancia Marcelo:</strong> $${Math.round(marceloTotal).toLocaleString("es-AR")}</p>
-      <p><strong>Ganancia Colo:</strong> $${Math.round(coloTotal).toLocaleString("es-AR")}</p>
-    `;
+      // Mostrar resultados
+      rangeProfitResult.innerHTML = `
+        <p><strong>Total Cobrado:</strong> $${Math.round(totalCobrado).toLocaleString("es-AR")}</p>
+        <p><strong>Marcelo:</strong> $${Math.round(marceloTotal).toLocaleString("es-AR")}</p>
+        <p><strong>Colo:</strong> $${Math.round(coloTotal).toLocaleString("es-AR")}</p>
+      `;
+    } catch (error) {
+      console.error("Error calculando ganancias:", error);
+      rangeProfitResult.innerHTML = `<p>Error al calcular las ganancias.</p>`;
+    }
   };
 
-  // Evento al hacer clic en el botón
   calculateButton.addEventListener("click", () => {
-    const startDate = new Date(startDateInput.value);
-    const endDate = new Date(endDateInput.value);
+    const startDate = startDateInput.value;
+    const endDate = endDateInput.value;
 
-    if (startDateInput.value === "" || endDateInput.value === "") {
+    if (!startDate || !endDate) {
       alert("Por favor, seleccione un rango de fechas.");
       return;
     }
 
-    if (startDate > endDate) {
+    const parsedStartDate = new Date(startDate);
+    const parsedEndDate = new Date(endDate);
+
+    if (parsedStartDate > parsedEndDate) {
       alert("La fecha de inicio no puede ser mayor a la fecha de fin.");
       return;
     }
 
-    calculateRangeProfit(startDate, endDate);
+    calculateRangeProfit(parsedStartDate, parsedEndDate);
+  });
+});
+
+todayPaymentsList.addEventListener("click", (e) => {
+  if (e.target.classList.contains("whatsapp-button")) {
+    const phone = e.target.getAttribute("data-phone"); // Obtener número de teléfono
+    const name = e.target.getAttribute("data-name"); // Obtener nombre del cliente
+    const amount = e.target.getAttribute("data-amount"); // Obtener el monto del pago
+
+    if (phone) {
+      const message = encodeURIComponent(
+        `Hola ${name}, le recordamos que hoy tiene un pago pendiente de $${amount}.`
+      );
+      const whatsappURL = `https://wa.me/${phone}?text=${message}`;
+      window.open(whatsappURL, "_blank"); // Abrir WhatsApp en una nueva pestaña
+    } else {
+      alert("Número de teléfono no disponible.");
+    }
+  }
+});
+
+document.addEventListener("DOMContentLoaded", () => {
+  const sendAllWhatsAppBtn = document.getElementById("sendAllWhatsApp");
+  const todayPaymentsList = document.getElementById("todayPaymentsList");
+
+  // Manejar clic en el botón para enviar mensajes a todos
+  sendAllWhatsAppBtn.addEventListener("click", () => {
+    const paymentButtons = todayPaymentsList.querySelectorAll(".whatsapp-button");
+
+    if (paymentButtons.length === 0) {
+      alert("No hay pagos pendientes para hoy.");
+      return;
+    }
+
+    paymentButtons.forEach((button) => {
+      const phone = button.getAttribute("data-phone");
+      const name = button.getAttribute("data-name");
+      const amount = button.getAttribute("data-amount");
+
+      if (phone) {
+        const message = encodeURIComponent(
+          `Hola ${name}, le recordamos que hoy tiene un pago pendiente de $${amount}.`
+        );
+        const whatsappURL = `https://wa.me/${phone}?text=${message}`;
+        window.open(whatsappURL, "_blank");
+      }
+    });
+
+    alert("Se han enviado los mensajes a todos los clientes con pagos pendientes hoy.");
   });
 });
