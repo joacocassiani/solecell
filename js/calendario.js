@@ -111,3 +111,4 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   calendar.render();
 });
+
