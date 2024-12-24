@@ -18,6 +18,12 @@ const db = getFirestore(app);
 const today = new Date().toISOString().split("T")[0];
 
 document.addEventListener("DOMContentLoaded", async () => {
+
+  function toggleSidebar() {
+    const sidebar = document.querySelector('.sidebar');
+    sidebar.classList.toggle('active');
+  }
+  
   const salesCollection = collection(db, "sales"); // Conexión a la colección "sales"
   const querySnapshot = await getDocs(salesCollection); // Obtener datos desde Firebase
 
@@ -264,3 +270,4 @@ document.addEventListener("DOMContentLoaded", () => {
     alert("Se han enviado los mensajes a todos los clientes con pagos pendientes hoy.");
   });
 });
+

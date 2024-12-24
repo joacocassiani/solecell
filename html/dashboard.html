@@ -9,8 +9,11 @@
 </head>
 <body>
   <div class="dashboard-container">
+    <div class="hamburger-menu" onclick="toggleSidebar()">
+      ☰
+    </div>
     <!-- Sidebar -->
-    <aside class="sidebar">
+    <div class="sidebar">
       <div class="logo">
         <img src="../imagenes/logo.png" alt="Logo">
       </div>
@@ -43,7 +46,7 @@
           </li>
         </ul>
       </nav>
-    </aside>
+    </div>
 
     <!-- Main Content -->
     <main class="main-content">
@@ -98,5 +101,11 @@
   <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-firestore.js"></script>
   <script type="module" src="../js/firebase-config.js"></script>
+  <script>
+    function toggleSidebar() {
+      const sidebar = document.querySelector('.sidebar'); // Seleccionar la barra lateral
+      sidebar.classList.toggle('active'); // Alternar la clase "active" para mostrar u ocultar
+    }
+  </script>
 </body>
 </html>

@@ -720,3 +720,77 @@ form input, form button {
     font-size: 1rem;
   }
 }
+
+
+/* Ajustar el menú lateral */
+@media (max-width: 768px) {
+  .sidebar {
+    width: 100%; /* Hacer que el menú ocupe toda la pantalla */
+    position: absolute;
+    z-index: 1000;
+    height: 100%;
+    left: -100%; /* Ocultarlo por defecto */
+    transition: all 0.3s ease-in-out;
+  }
+
+  .sidebar.active {
+    left: 0; /* Mostrar el menú al activarlo */
+  }
+
+  .main-content {
+    margin-left: 0;
+  }
+
+  .hamburger-menu {
+    display: block; /* Mostrar el botón de menú */
+  }
+}
+
+/* Ajustar la tabla de ventas */
+@media (max-width: 768px) {
+  table {
+    width: 100%;
+    font-size: 12px;
+  }
+
+  table thead {
+    display: none; /* Ocultar el encabezado de la tabla */
+  }
+
+  table tbody tr {
+    display: block; /* Convertir cada fila en un bloque */
+    margin-bottom: 10px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    padding: 10px;
+  }
+
+  table tbody td {
+    display: flex;
+    justify-content: space-between;
+    padding: 5px 0;
+  }
+
+  table tbody td::before {
+    content: attr(data-label); /* Usar el atributo data-label para mostrar etiquetas */
+    font-weight: bold;
+    margin-right: 10px;
+    color: #555;
+  }
+}
+
+.hamburger-menu {
+  display: none; /* Ocultar en pantallas grandes */
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  font-size: 24px;
+  cursor: pointer;
+  z-index: 2000;
+}
+
+@media (max-width: 768px) {
+  .hamburger-menu {
+    display: block; /* Mostrar el menú en pantallas pequeñas */
+  }
+}
