@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard</title>
+  <link rel="stylesheet" href="../css/ganancia.css">
+  <link rel="stylesheet" href="../css/dashboard.css">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+  <div class="dashboard-container">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div class="logo">
+        <img src="../imagenes/logo.png" alt="Logo">
+      </div>
+      <nav>
+        <ul>
+          <li>
+            <a href="dashboard.html">
+              <i class="fas fa-home"></i> Dashboard
+            </a>
+          </li>
+          <li>
+            <a href="ventas.html">
+              <i class="fas fa-shopping-cart"></i> Ventas
+            </a>
+          </li>
+          <li>
+            <a href="stock.html">
+              <i class="fas fa-boxes"></i> Stock
+            </a>
+          </li>
+          <li>
+            <a href="calendario.html">
+              <i class="fas fa-calendar-alt"></i> Calendario
+            </a>
+          </li>
+          <li>
+            <a href="ganancia.html">
+              <i class="fas fa-coins"></i> Ganancia
+            </a>
+          </li>
+        </ul>
+      </nav>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <div class="main-content">
+            <header>
+              <h1>Ganancia</h1>
+            </header>
+              <!-- Campo de búsqueda -->
+            <div class="search-container">
+                <input type="text" id="searchInput" placeholder="Buscar por producto o fecha...">
+            </div>
+            <table class="inventory-table">
+              <thead>
+                <tr>
+                  <th>Fecha</th>
+                  <th>Producto</th>
+                  <th>Costo</th>
+                  <th>Total Venta</th>
+                  <th>Marcelo</th>
+                  <th>Colo</th>
+                </tr>
+              </thead>
+              <tbody id="profitTableBody">
+                <!-- Aquí se renderizan las filas dinámicamente -->
+              </tbody>
+            </table>
+          </div>
+    </main>
+  </div>
+  <script src="../js/ganancia.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-firestore.js"></script>
+  <script src="firebase-config.js"></script>
+</body>
+</html>

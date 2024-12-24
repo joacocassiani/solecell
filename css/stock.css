@@ -1,0 +1,153 @@
+/* Global Styles */
+body {
+    font-family: 'Arial', sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: #f4f4f9;
+  }
+  
+  h1 {
+    font-size: 24px;
+    font-weight: bold;
+    color: #2c3e50;
+    margin-bottom: 20px;
+    text-align: left;
+  }
+  
+  .main-content {
+    max-width: 1200px;
+    margin: 40px auto;
+    padding: 20px;
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  }
+  
+  /* Form Styles */
+  .form-container {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+  }
+  
+  .form-container label {
+    font-size: 16px;
+    font-weight: bold;
+    color: #34495e;
+    margin-right: 10px;
+  }
+  
+  .form-container input {
+    width: calc(50% - 20px);
+    padding: 10px;
+    font-size: 14px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    margin-right: 20px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  }
+  
+  .form-container button {
+    padding: 10px 20px;
+    font-size: 14px;
+    font-weight: bold;
+    color: #fff;
+    background-color: #3498db;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.15);
+    transition: background-color 0.3s ease;
+  }
+  
+  .form-container button:hover {
+    background-color: #2980b9;
+  }
+  
+  .form-container input::placeholder {
+    font-style: italic;
+    color: #b2bec3;
+  }
+  
+  /* Table Styles */
+  .inventory-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+  }
+  
+  .inventory-table th,
+  .inventory-table td {
+    text-align: left;
+    padding: 12px;
+    border-bottom: 1px solid #ddd;
+  }
+  
+  .inventory-table th {
+    background-color: #3498db;
+    color: #fff;
+    font-size: 16px;
+  }
+  
+  .inventory-table tr:hover {
+    background-color: #f1f1f1;
+  }
+  
+  .inventory-table td {
+    font-size: 14px;
+    color: #2c3e50;
+  }
+  
+  /* Action Buttons */
+  .inventory-table button {
+    padding: 5px 10px;
+    font-size: 12px;
+    font-weight: bold;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    margin-right: 5px;
+  }
+  
+  .inventory-table .edit {
+    background-color: #f1c40f;
+    color: #fff;
+  }
+  
+  .inventory-table .edit:hover {
+    background-color: #d4ac0d;
+  }
+  
+  .inventory-table .delete {
+    background-color: #e74c3c;
+    color: #fff;
+  }
+  
+  .inventory-table .delete:hover {
+    background-color: #c0392b;
+  }
+  
+  /* Responsive Design */
+  @media (max-width: 768px) {
+    .form-container {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+  
+    .form-container input {
+      width: 100%;
+      margin-bottom: 10px;
+    }
+  
+    .form-container button {
+      width: 100%;
+      text-align: center;
+    }
+  
+    .inventory-table th,
+    .inventory-table td {
+      font-size: 12px;
+    }
+  }

@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard</title>
+  <link rel="stylesheet" href="../css/dashboard.css">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+  <div class="dashboard-container">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div class="logo">
+        <img src="../imagenes/logo.png" alt="Logo">
+      </div>
+      <nav>
+        <ul>
+          <li>
+            <a href="dashboard.html">
+              <i class="fas fa-home"></i> Dashboard
+            </a>
+          </li>
+          <li>
+            <a href="ventas.html">
+              <i class="fas fa-shopping-cart"></i> Ventas
+            </a>
+          </li>
+          <li>
+            <a href="stock.html">
+              <i class="fas fa-boxes"></i> Stock
+            </a>
+          </li>
+          <li>
+            <a href="calendario.html">
+              <i class="fas fa-calendar-alt"></i> Calendario
+            </a>
+          </li>
+          <li>
+            <a href="ganancia.html">
+              <i class="fas fa-coins"></i> Ganancia
+            </a>
+          </li>
+        </ul>
+      </nav>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+      <header>
+        <h1>Dashboard</h1>
+      </header>
+      <div class="key-metrics">
+        <div class="key-metric">
+          <h3>Total Cobrado</h3>
+          <p id="totalCobrado">$0</p>
+        </div>
+        <div class="key-metric">
+          <h3>Total Pendiente</h3>
+          <p id="totalPendiente">$0</p>
+        </div>
+        <div class="key-metric">
+          <h3>Pagos Hoy</h3>
+          <p id="pagosHoy">0</p>
+        </div>
+      </div>
+      <div class="key-metrics">
+        <div class="key-metric">
+          <h3>Corresponde Marcelo</h3>
+          <p id="gananciaMarcelo">$</p>
+        </div>
+        <div class="key-metric">
+          <h3>Corresponde Colo</h3>
+          <p id="gananciaColo">$</p>
+        </div>
+      </div>
+
+      <section id="todayPayments" class="today-payments">
+        <h3>Pagos a Cobrar Hoy</h3>
+        <ul id="todayPaymentsList"></ul>
+      </section>
+
+      <div class="date-range-container">
+        <h3>Calcular Ganancia en Rango</h3>
+        <label for="startDate">Desde:</label>
+        <input type="date" id="startDate">
+        <label for="endDate">Hasta:</label>
+        <input type="date" id="endDate">
+        <button id="calculateRangeProfit">Calcular</button>
+      </div>
+      <div id="rangeProfitResult" class="range-profit-result">
+        <!-- Aquí se mostrarán los resultados del rango -->
+      </div>
+    </main>
+  </div>
+  <script src="../js/dashboard.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-firestore.js"></script>
+  <script src="firebase-config.js"></script>
+</body>
+</html>

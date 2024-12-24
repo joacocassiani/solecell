@@ -1,0 +1,221 @@
+body {
+    font-family: 'Arial', sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: #f4f4f9;
+  }
+  
+  h1 {
+    font-size: 24px;
+    font-weight: bold;
+    color: #2c3e50;
+    margin-bottom: 10px;
+    text-align: left;
+  }
+  
+  .main-content {
+    max-width: 1200px;
+    margin: 20px auto;
+    padding: 20px;
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  }
+  
+  .inventory-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+  }
+  
+  .inventory-table th,
+  .inventory-table td {
+    text-align: left;
+    padding: 12px;
+    border-bottom: 1px solid #ddd;
+  }
+  
+  .inventory-table th {
+    background-color: #3498db;
+    color: #fff;
+    font-size: 16px;
+  }
+  
+  .inventory-table tr:hover {
+    background-color: #f1f1f1;
+  }
+  
+  .inventory-table td {
+    font-size: 14px;
+    color: #2c3e50;
+  }
+  
+  /* Responsive Design */
+  @media (max-width: 768px) {
+    .inventory-table th,
+    .inventory-table td {
+      font-size: 12px;
+    }
+  }
+
+  .search-container {
+    margin-bottom: 20px;
+    text-align: left;
+  }
+  
+  .search-container input {
+    padding: 8px 12px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    width: 100%;
+    max-width: 300px;
+  }
+
+  /* General reset */
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  box-sizing: border-box;
+}
+
+/* Contenedor principal */
+.main-content {
+  padding: 20px;
+}
+
+/* Encabezado */
+header h1 {
+  text-align: center;
+  font-size: 2rem;
+  margin-bottom: 20px;
+}
+
+/* Tablas */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 20px;
+}
+
+table th, table td {
+  text-align: left;
+  padding: 10px;
+  border: 1px solid #ddd;
+  font-size: 14px;
+}
+
+/* Botones */
+button {
+  padding: 10px 15px;
+  border: none;
+  cursor: pointer;
+  border-radius: 5px;
+}
+
+button.edit-product {
+  background-color: #4CAF50;
+  color: white;
+}
+
+button.delete-product {
+  background-color: #f44336;
+  color: white;
+}
+
+/* Formularios */
+form {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 15px;
+  margin-bottom: 20px;
+}
+
+form label {
+  flex: 1 1 100%;
+  font-weight: bold;
+}
+
+form input, form button {
+  flex: 1 1 100%;
+  padding: 10px;
+  font-size: 16px;
+}
+
+/* Cartas o contenedores */
+.cards {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+  margin-bottom: 20px;
+}
+
+.card {
+  flex: 1 1 calc(33.333% - 20px);
+  background-color: #f8f9fa;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  text-align: center;
+  padding: 20px;
+  font-size: 1rem;
+}
+
+.card h2 {
+  font-size: 1.5rem;
+  margin: 10px 0;
+}
+
+.card span {
+  font-size: 1.2rem;
+  font-weight: bold;
+}
+
+/* Media Queries para Responsividad */
+
+/* Teléfonos */
+@media (max-width: 768px) {
+  table th, table td {
+    font-size: 12px;
+    padding: 5px;
+  }
+
+  .cards {
+    flex-direction: column;
+  }
+
+  .card {
+    flex: 1 1 100%;
+  }
+
+  form {
+    flex-direction: column;
+  }
+
+  form input, form button {
+    flex: 1 1 100%;
+  }
+}
+
+/* Pantallas pequeñas */
+@media (max-width: 480px) {
+  header h1 {
+    font-size: 1.5rem;
+  }
+
+  table th, table td {
+    font-size: 10px;
+    padding: 3px;
+  }
+
+  form input, form button {
+    font-size: 14px;
+    padding: 8px;
+  }
+
+  .card h2 {
+    font-size: 1.2rem;
+  }
+
+  .card span {
+    font-size: 1rem;
+  }
+}

@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Nueva Venta</title>
+  <link rel="stylesheet" href="../css/dashboard.css">
+</head>
+<body>
+  <div class="dashboard-container">
+    <main class="main-content">
+      <header class="new-sale-header">
+        <h1>Registrar Nueva Venta</h1>
+      </header>
+      <form id="newSaleForm" class="new-sale-form">
+        <div class="form-group">
+          <label for="clientName">Nombre del Cliente</label>
+          <input type="text" id="clientName" placeholder="Juan Pérez" required>
+        </div>
+        <div class="form-group">
+          <label for="clientDni">DNI</label>
+          <input type="number" id="clientDni" placeholder="40585749" required>
+        </div>
+        <div class="form-group">
+          <label for="clientNumber">Telefono</label>
+          <input type="number" id="clientNumber" placeholder="1125457878" required>
+        </div>
+        <div class="form-group">
+          <label for="product">Producto:</label>
+          <input type="text" id="product" placeholder="Ej: Televisor 55" required>
+        </div>
+        <div class="form-group">
+          <label for="quantity">Cantidad Vendida</label>
+          <input type="number" id="quantity" required placeholder="1">
+        </div>
+        <div class="form-group">
+          <label for="saleDate">Fecha 1er Pago</label>
+          <input type="date" id="saleDate" required>
+        </div>
+        <div class="form-group">
+          <label for="saleCant">Cantidad de Pagos</label>
+          <input type="number" id="saleCant" required placeholder="6">
+        </div>
+        <div class="form-group">
+          <label for="periodicidad">Periodicidad</label>
+          <select id="periodicidad" required>
+            <option value="Semanal">Semanal</option>
+            <option value="Quincenal">Quincenal</option>
+            <option value="Mensual">Mensual</option>
+          </select>
+        </div>
+        <div class="form-group row">
+          <div class="input-group">
+            <label for="productCost">Costo del Producto</label>
+            <input type="number" id="productCost" placeholder="Ingrese el costo" required>
+          </div>
+          <div class="input-group">
+            <label for="saleAmount">Monto de la Venta</label>
+            <input type="number" id="saleAmount" placeholder="Ingrese el monto" required>
+          </div>
+        </div>
+        <button type="submit" class="new-sale-button">Guardar Venta</button>
+      </form>
+      <div class="new-sale-footer">
+        <button onclick="location.href='../html/dashboard.html'" class="new-sale-button">Volver al Dashboard</button>
+      </div>
+    </main>
+  </div>
+  <script type="module" src="../js/nueva-venta.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-firestore.js"></script>
+  <script type="module" src="../js/firebase-config.js"></script>
+</body>
+</html>
