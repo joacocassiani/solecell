@@ -131,14 +131,18 @@ document.addEventListener("DOMContentLoaded", async () => {
     totalSalesElement.textContent = filteredSales.length;
   };
 
-  // Función para eliminar una venta
   const deleteSale = async (id) => {
     try {
+      // Eliminar el documento de Firestore
       await deleteDoc(doc(db, "sales", id));
+      // Filtrar las ventas para eliminar del estado local
       sales = sales.filter((sale) => sale.id !== id);
+      // Volver a renderizar las ventas
       renderSales();
+      alert("Venta eliminada correctamente.");
     } catch (error) {
       console.error("Error al eliminar la venta:", error);
+      alert("Hubo un problema al eliminar la venta.");
     }
   };
 
@@ -151,6 +155,16 @@ document.addEventListener("DOMContentLoaded", async () => {
       }
     }
   });
+
+  // Manejo de clics en los botones de acción
+  document.addEventListener("click", async (e) => {
+    // Verificar si se hizo clic en un botón de eliminar
+    if (e.target.classList.contains("delete-sale")) {
+      const id = e.target.getAttribute("data-id"); // Obtener el ID de la venta
+      if (id && confirm("¿Estás seguro de que deseas eliminar esta venta?")) {
+        await deleteSale(id);
+      }
+    }});
 
   searchInput.addEventListener("input", (e) => {
     renderSales(e.target.value);
