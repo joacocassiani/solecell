@@ -60,27 +60,21 @@ document.addEventListener("DOMContentLoaded", async () => {
   const calendar = new FullCalendar.Calendar(calendarEl, {
     initialView: window.innerWidth <= 768 ? "listWeek" : "dayGridMonth",
     headerToolbar: {
-      left: "prev,next today",
+      left: window.innerWidth <= 768 ? "prev,next" : "prev,next today",
       center: "title",
-      right: window.innerWidth <= 768 ? "listWeek" : "dayGridMonth,timeGridWeek",
+      right: window.innerWidth <= 768 ? "" : "dayGridMonth,timeGridWeek",
     },
+    buttonText: {
+      today: "Hoy",
+      month: "Mes",
+      week: "Semana",
+      list: "Lista",
+    },
+    events: events,
     locale: "es",
     editable: false,
-    events: events,
     height: "auto",
-    dayCellDidMount: (info) => {
-      const date = info.date.toISOString().split("T")[0];
-      const totalForDay = dailyTotals[date] || 0;
-
-      if (totalForDay > 0) {
-        const totalDiv = document.createElement("div");
-        totalDiv.textContent = `Total: $${Math.round(totalForDay)}`;
-        totalDiv.style.fontSize = "12px";
-        totalDiv.style.fontWeight = "bold";
-        totalDiv.style.textAlign = "center";
-        info.el.appendChild(totalDiv);
-      }
-    },
+    contentHeight: window.innerWidth <= 768 ? "auto" : "parent",
   });
 
   calendar.render();

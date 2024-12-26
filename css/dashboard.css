@@ -796,46 +796,66 @@ form input, form button {
 }
 
 #calendar {
-  max-width: 90%;
-  margin: 20px auto;
-  background: #ffffff;
+  max-width: 100%;
+  margin: 0 auto;
+  background: white;
   border-radius: 8px;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-  overflow: hidden;
 }
 
 .fc-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  padding: 10px;
   background: #3498db;
   color: white;
-  padding: 10px;
   border-radius: 8px 8px 0 0;
 }
 
+.fc-toolbar .fc-button-group {
+  display: flex;
+  gap: 5px;
+}
+
 .fc-toolbar-title {
-  font-size: 18px;
+  font-size: 16px;
   font-weight: bold;
-}
-
-.fc-daygrid-day {
-  border: 1px solid #ddd;
-}
-
-.fc-event {
-  background-color: #3498db;
-  border: none;
-  color: white;
-  font-size: 12px;
-  border-radius: 4px;
+  margin: 5px 0;
+  text-align: center;
 }
 
 .fc-button {
-  background: #3498db;
-  color: white;
+  background: #ffffff;
+  color: #3498db;
   border: none;
   border-radius: 4px;
-  padding: 5px 10px;
+  padding: 5px;
+  font-size: 14px;
+  transition: all 0.3s ease;
 }
 
 .fc-button:hover {
   background: #2980b9;
+  color: white;
+}
+
+.fc-button.fc-today-button {
+  font-size: 12px;
+  padding: 5px 10px;
+}
+
+.fc-event {
+  font-size: 12px;
+  border-radius: 5px;
+}
+
+.fc-daygrid-day-number {
+  font-size: 14px;
+  color: #333;
+}
+
+.fc-daygrid-day {
+  padding: 5px;
 }
