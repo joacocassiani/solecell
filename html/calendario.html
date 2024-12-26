@@ -6,6 +6,7 @@
   <title>Calendario de Pagos</title>
   <script src='https://cdn.jsdelivr.net/npm/fullcalendar-scheduler@6.1.15/index.global.min.js'></script>
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.css" rel="stylesheet">
   <link rel="stylesheet" href="../css/dashboard.css">
   <link rel="icon" type="image/x-icon" href="../imagenes/logo.png">
 </head>
@@ -31,14 +32,15 @@
     <header>
       <h1>Calendario de Pagos</h1>
     </header>
-    <section>
+    <div class="calendar-container">
       <div id="calendar"></div>
-    </section>
+  </div>
   </main>
  
   <script type="module" src="../js/calendario.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-firestore.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.js"></script>
   <script type="module" src="../js/firebase-config.js"></script>
   <script>
     function toggleSidebar() {

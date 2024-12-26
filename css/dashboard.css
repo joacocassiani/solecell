@@ -794,3 +794,48 @@ form input, form button {
     display: block; /* Mostrar el menú en pantallas pequeñas */
   }
 }
+
+#calendar {
+  max-width: 90%;
+  margin: 20px auto;
+  background: #ffffff;
+  border-radius: 8px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+}
+
+.fc-toolbar {
+  background: #3498db;
+  color: white;
+  padding: 10px;
+  border-radius: 8px 8px 0 0;
+}
+
+.fc-toolbar-title {
+  font-size: 18px;
+  font-weight: bold;
+}
+
+.fc-daygrid-day {
+  border: 1px solid #ddd;
+}
+
+.fc-event {
+  background-color: #3498db;
+  border: none;
+  color: white;
+  font-size: 12px;
+  border-radius: 4px;
+}
+
+.fc-button {
+  background: #3498db;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  padding: 5px 10px;
+}
+
+.fc-button:hover {
+  background: #2980b9;
+}
