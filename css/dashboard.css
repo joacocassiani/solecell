@@ -859,3 +859,23 @@ form input, form button {
 .fc-daygrid-day {
   padding: 5px;
 }
+
+#weekTotal {
+  background-color: #f0f8ff;
+  border: 1px solid #3498db;
+  padding: 10px;
+  border-radius: 8px;
+  margin: 10px auto;
+  max-width: 300px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+#totalDisplay {
+  background-color: #f0f8ff;
+  border: 1px solid #3498db;
+  padding: 10px;
+  border-radius: 8px;
+  margin: 10px auto;
+  max-width: 300px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}

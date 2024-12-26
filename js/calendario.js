@@ -14,9 +14,13 @@ const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
 document.addEventListener("DOMContentLoaded", async () => {
+  const calendarEl = document.getElementById("calendar");
+
   const events = [];
   const dailyTotals = {};
+  const weeklyTotals = {};
 
+  // Obtener datos desde Firebase
   try {
     const salesSnapshot = await getDocs(collection(db, "sales"));
     const sales = salesSnapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
@@ -42,6 +46,11 @@ document.addEventListener("DOMContentLoaded", async () => {
 
         dailyTotals[formattedDate] = (dailyTotals[formattedDate] || 0) + paymentAmount;
 
+        const week = `${paymentDate.getFullYear()}-W${Math.ceil(
+          (paymentDate.getDate() + 6 - paymentDate.getDay()) / 7
+        )}`;
+        weeklyTotals[week] = (weeklyTotals[week] || 0) + paymentAmount;
+
         events.push({
           title: `${sale.clientName} - $${Math.round(paymentAmount)} - ${sale.product}`,
           start: formattedDate,
@@ -52,17 +61,16 @@ document.addEventListener("DOMContentLoaded", async () => {
       }
     });
   } catch (error) {
-    console.error("Error al obtener datos:", error);
+    console.error("Error al cargar datos desde Firebase:", error);
   }
 
-  const calendarEl = document.getElementById("calendar");
-
+  // Crear y renderizar el calendario
   const calendar = new FullCalendar.Calendar(calendarEl, {
     initialView: window.innerWidth <= 768 ? "listWeek" : "dayGridMonth",
     headerToolbar: {
       left: window.innerWidth <= 768 ? "prev,next" : "prev,next today",
       center: "title",
-      right: window.innerWidth <= 768 ? "" : "dayGridMonth,timeGridWeek",
+      right: window.innerWidth <= 768 ? "" : "dayGridMonth,listWeek",
     },
     buttonText: {
       today: "Hoy",
@@ -72,9 +80,90 @@ document.addEventListener("DOMContentLoaded", async () => {
     },
     events: events,
     locale: "es",
-    editable: false,
     height: "auto",
-    contentHeight: window.innerWidth <= 768 ? "auto" : "parent",
+    editable: false,
+    dayCellDidMount: (info) => {
+      const date = info.date.toISOString().split("T")[0];
+      const totalForDay = dailyTotals[date] || 0;
+
+      if (totalForDay > 0) {
+        const totalDiv = document.createElement("div");
+        totalDiv.textContent = `Total: $${Math.round(totalForDay)}`;
+        totalDiv.style.fontSize = "12px";
+        totalDiv.style.fontWeight = "bold";
+        totalDiv.style.color = "#000";
+        totalDiv.style.textAlign = "center";
+        totalDiv.style.marginTop = "5px";
+
+        info.el.appendChild(totalDiv);
+      }
+    },
+    datesSet: (info) => {
+      const weekTotalDiv = document.getElementById("weekTotal");
+      const monthTotalDiv = document.getElementById("monthTotal");
+    
+      if (info.view.type === "listWeek") {
+        const weekStart = info.start;
+        const weekEnd = info.end;
+    
+        let totalForWeek = 0;
+    
+        for (const [date, total] of Object.entries(dailyTotals)) {
+          const currentDate = new Date(date);
+          if (currentDate >= weekStart && currentDate < weekEnd) {
+            totalForWeek += total;
+          }
+        }
+    
+        if (!weekTotalDiv) {
+          const newDiv = document.createElement("div");
+          newDiv.id = "weekTotal";
+          newDiv.style.fontSize = "16px";
+          newDiv.style.fontWeight = "bold";
+          newDiv.style.textAlign = "center";
+          newDiv.style.marginTop = "10px";
+          newDiv.style.color = "#000";
+          newDiv.textContent = `Total Semana: $${Math.round(totalForWeek)}`;
+          calendarEl.parentElement.appendChild(newDiv);
+        } else {
+          weekTotalDiv.textContent = `Total Semana: $${Math.round(totalForWeek)}`;
+        }
+      } else if (info.view.type === "dayGridMonth") {
+        const monthStart = info.start;
+        const monthEnd = info.end;
+    
+        let totalForMonth = 0;
+    
+        for (const [date, total] of Object.entries(dailyTotals)) {
+          const currentDate = new Date(date);
+          if (currentDate >= monthStart && currentDate < monthEnd) {
+            totalForMonth += total;
+          }
+        }
+    
+        if (!monthTotalDiv) {
+          const newDiv = document.createElement("div");
+          newDiv.id = "monthTotal";
+          newDiv.style.fontSize = "16px";
+          newDiv.style.fontWeight = "bold";
+          newDiv.style.textAlign = "center";
+          newDiv.style.marginTop = "10px";
+          newDiv.style.color = "#000";
+          newDiv.textContent = `Total Mes: $${Math.round(totalForMonth)}`;
+          calendarEl.parentElement.appendChild(newDiv);
+        } else {
+          monthTotalDiv.textContent = `Total Mes: $${Math.round(totalForMonth)}`;
+        }
+    
+        // Asegurarse de ocultar el total semanal en la vista mensual
+        if (weekTotalDiv) weekTotalDiv.style.display = "none";
+      }
+    
+      // Ocultar el total mensual en otras vistas
+      if (info.view.type !== "dayGridMonth" && monthTotalDiv) {
+        monthTotalDiv.style.display = "none";
+      }
+    }
   });
 
   calendar.render();
