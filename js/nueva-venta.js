@@ -52,6 +52,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const newSale = {
       dni,
       clientName,
+      phone,
       saleDate,
       endDate: endDate.toISOString().split("T")[0], // Fecha final en formato YYYY-MM-DD
       product,

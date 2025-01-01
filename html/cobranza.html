@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard</title>
+  <link rel="stylesheet" href="../css/dashboard.css">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script> <!-- Librería para exportar a Excel -->
+  <link rel="icon" type="image/x-icon" href="../imagenes/logo.png">
+</head>
+<body>
+  <div class="dashboard-container">
+    <div class="hamburger-menu" onclick="toggleSidebar()">
+      ☰
+    </div>
+    <!-- Sidebar -->
+    <div class="sidebar">
+      <div class="logo">
+        <img src="../imagenes/logo.png" alt="Logo">
+      </div>
+      <nav>
+        <ul>
+            <li><a href="dashboard.html"><i class="fas fa-home"></i> Dashboard</a></li>
+            <li><a href="ventas.html"><i class="fas fa-shopping-cart"></i> Ventas</a></li>
+            <li><a href="stock.html"><i class="fas fa-boxes"></i> Stock</a></li>
+            <li><a href="calendario.html"><i class="fas fa-calendar-alt"></i> Calendario</a></li>
+            <li><a href="ganancia.html"><i class="fas fa-coins"></i> Ganancia</a></li>
+            <li><a href="cobranza.html"><i class="fas fa-cash-register"></i> Cobranza</a>
+        </ul>
+      </nav>
+    </div>
+
+    <main class="main-content">
+        <header>
+            <h1>Cobranza por rango de fechas</h1>
+        </header>
+      
+        <div class="date-range">
+          <label for="startDate">Fecha inicio:</label>
+          <input type="date" id="startDate">
+          <label for="endDate">Fecha fin:</label>
+          <input type="date" id="endDate">
+          <button id="generateTable">Generar Tabla</button>
+          <button id="exportExcel">Exportar a Excel</button>
+        </div>
+      
+        <table id="paymentTable" >
+          <thead>
+            <tr>
+              <th>Nombre</th>
+              <th>Monto</th>
+              <th>Cuota</th>
+              <th>Fecha</th>
+            </tr>
+          </thead>
+          <tbody>
+            <!-- Las filas generadas dinámicamente se colocarán aquí -->
+          </tbody>
+        </table>
+    </main>
+  <script type="module" src="../js/cobranza.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-firestore.js"></script>
+  <script type="module" src="../js/firebase-config.js"></script>
+  <script>
+    function toggleSidebar() {
+      const sidebar = document.querySelector('.sidebar'); // Seleccionar la barra lateral
+      sidebar.classList.toggle('active'); // Alternar la clase "active" para mostrar u ocultar
+    }
+  </script>
+</body>
+</html>

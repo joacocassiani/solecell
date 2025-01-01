@@ -1,5 +1,6 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.15.0/firebase-app.js";
-import { getFirestore, collection, getDocs, doc, deleteDoc } from "https://www.gstatic.com/firebasejs/9.15.0/firebase-firestore.js";
+import { getFirestore, collection, getDocs, doc, deleteDoc, updateDoc  } from "https://www.gstatic.com/firebasejs/9.15.0/firebase-firestore.js";
+
 
 // Configuración de Firebase
 const firebaseConfig = {
@@ -19,6 +20,9 @@ document.addEventListener("DOMContentLoaded", async () => {
   const cardContainer = document.getElementById("responsiveCardContainer"); // Contenedor de tarjetas para móviles
   const searchInput = document.getElementById("searchInput");
   const totalSalesElement = document.getElementById("totalSales");
+  const editForm = document.getElementById("editForm");
+  const saveEditButton = document.getElementById("save-edit");
+  let currentEditId = null; // ID de la venta que se está editando
 
   // Elementos para las cartas de acumuladores
   let monthlyCounter = document.getElementById("monthlyCounter");
@@ -81,6 +85,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         card.innerHTML = `
           <div><strong>DNI:</strong> ${sale.dni || "Sin DNI"}</div>
           <div><strong>Cliente:</strong> ${sale.clientName}</div>
+          <div><strong>Telefono:</strong> ${sale.phone}</div>
           <div><strong>Fecha Inicio:</strong> ${sale.saleDate}</div>
           <div><strong>Fecha Fin:</strong> ${sale.endDate}</div>
           <div><strong>Producto:</strong> ${sale.product}</div>
@@ -91,7 +96,7 @@ document.addEventListener("DOMContentLoaded", async () => {
           <div><strong>Venta:</strong> $${Math.round(sale.total || 0).toLocaleString("es-AR")}</div>
           <div><strong>Estado:</strong> ${status}</div>
           <div class="action-buttons">
-            <button class="whatsapp-sale" data-id="${sale.id}">📞</button>
+            <button class="pdf-sale" data-client='${JSON.stringify(sale)}'>🖨️ Ficha</button>
             <button class="edit-sale" data-id="${sale.id}">✏️</button>
             <button class="delete-sale" data-id="${sale.id}">❌</button>
           </div>
@@ -103,6 +108,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         row.innerHTML = `
           <td>${sale.dni || "Sin DNI"}</td>
           <td>${sale.clientName}</td>
+          <td>${sale.phone || "Sin Número"}</td>
           <td>${sale.saleDate}</td>
           <td>${sale.endDate}</td>
           <td>${sale.product}</td>
@@ -113,14 +119,81 @@ document.addEventListener("DOMContentLoaded", async () => {
           <td>$${Math.round(sale.total || 0).toLocaleString("es-AR")}</td>
           <td>${status}</td>
           <td>
-            <button class="whatsapp-sale" data-id="${sale.id}">📞</button>
+            <button class="pdf-sale" data-client='${JSON.stringify(sale)}'>🖨️ Ficha</button>
             <button class="edit-sale" data-id="${sale.id}">✏️</button>
             <button class="delete-sale" data-id="${sale.id}">❌</button>
           </td>
         `;
         salesTableBody.appendChild(row);
       }
+
+          // Asignar eventos a los botones de edición
+    document.querySelectorAll(".edit-sale").forEach((button) => {
+      button.addEventListener("click", (e) => {
+        const saleId = e.target.getAttribute("data-id");
+        const saleToEdit = sales.find((sale) => sale.id === saleId);
+        if (saleToEdit) {
+          showEditForm(saleToEdit);
+        }
+      });
     });
+
+      // Función para mostrar el formulario de edición
+  const showEditForm = (sale) => {
+    currentEditId = sale.id;
+    editForm.style.display = "block"; // Mostrar el formulario
+
+    // Llenar el formulario con los datos de la venta
+    document.getElementById("edit-dni").value = sale.dni || "";
+    document.getElementById("edit-clientName").value = sale.clientName || "";
+    document.getElementById("edit-saleDate").value = sale.saleDate || "";
+    document.getElementById("edit-endDate").value = sale.endDate || "";
+    document.getElementById("edit-product").value = sale.product || "";
+    document.getElementById("edit-periodicity").value = sale.periodicity || "Semanal";
+    document.getElementById("edit-payments").value = sale.payments || 0;
+    document.getElementById("edit-productCost").value = sale.productCost || 0;
+    document.getElementById("edit-total").value = sale.total || 0;
+  };
+
+  // Función para guardar los cambios
+  saveEditButton.addEventListener("click", async () => {
+    if (!currentEditId) {
+      alert("No se ha seleccionado ninguna venta para editar.");
+      return;
+    }
+
+    const updatedSale = {
+      dni: document.getElementById("edit-dni").value,
+      clientName: document.getElementById("edit-clientName").value,
+      saleDate: document.getElementById("edit-saleDate").value,
+      endDate: document.getElementById("edit-endDate").value,
+      product: document.getElementById("edit-product").value,
+      periodicity: document.getElementById("edit-periodicity").value,
+      payments: parseInt(document.getElementById("edit-payments").value, 10),
+      productCost: parseFloat(document.getElementById("edit-productCost").value),
+      total: parseFloat(document.getElementById("edit-total").value),
+    };
+
+    try {
+      await updateDoc(doc(db, "sales", currentEditId), updatedSale);
+
+      // Actualizar localmente
+      sales = sales.map((sale) =>
+        sale.id === currentEditId ? { id: currentEditId, ...updatedSale } : sale
+      );
+
+      renderSales();
+      editForm.style.display = "none";
+      
+    } catch (error) {
+      console.error("Error al actualizar la venta:", error);
+      alert("Hubo un problema al actualizar la venta.");
+    }
+    });
+
+
+    });
+    
 
     // Actualizar contadores
     monthlyCounter.textContent = monthlySales;
@@ -146,15 +219,6 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
   };
 
-  // Manejo de eventos
-  cardContainer.addEventListener("click", async (e) => {
-    if (e.target.classList.contains("delete-sale")) {
-      const id = e.target.getAttribute("data-id");
-      if (confirm("¿Seguro que deseas eliminar esta venta?")) {
-        await deleteSale(id);
-      }
-    }
-  });
 
   // Manejo de clics en los botones de acción
   document.addEventListener("click", async (e) => {
@@ -166,6 +230,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       }
     }});
 
+
   searchInput.addEventListener("input", (e) => {
     renderSales(e.target.value);
   });
@@ -174,3 +239,4 @@ document.addEventListener("DOMContentLoaded", async () => {
   await fetchSales();
   renderSales();
 });
+
