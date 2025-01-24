@@ -81,6 +81,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     events: events,
     locale: "es",
     height: "auto",
+    showNonCurrentDates: false,
     editable: false,
     dayCellDidMount: (info) => {
       const date = info.date.toISOString().split("T")[0];
