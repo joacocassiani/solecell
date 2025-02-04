@@ -215,21 +215,21 @@ document.addEventListener("DOMContentLoaded", async () => {
     totalSalesElement.textContent = filteredSales.length;
   };
 
-    // Función para generar un PDF con los datos de la venta
+// Función para generar un PDF con los datos de la venta
+const generatePDF = (sale) => {
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF();
 
-    const generatePDF = (sale) => {
-      const { jsPDF } = window.jspdf;
-      const doc = new jsPDF();
-  
-      // Función para formatear fecha a DD/MM/AAAA
-      const formatDate = (date) => {
-          const day = String(date.getDate()).padStart(2, "0");
-          const month = String(date.getMonth() + 1).padStart(2, "0");
-          const year = date.getFullYear();
-          return `${day}/${month}/${year}`;
-      };
-  
-      // Encabezado
+  // Función para formatear fecha a DD/MM/AAAA
+  const formatDate = (date) => {
+      const day = String(date.getDate()).padStart(2, "0");
+      const month = String(date.getMonth() + 1).padStart(2, "0");
+      const year = date.getFullYear();
+      return `${day}/${month}/${year}`;
+  };
+
+  // Encabezado del PDF
+  const addHeader = () => {
       doc.setFont("helvetica", "bold");
       doc.setFontSize(18);
       doc.text("SOLÉCELL", 105, 15, { align: "center" });
@@ -239,108 +239,130 @@ document.addEventListener("DOMContentLoaded", async () => {
       doc.text("CELULARES · SMART TV · ART. DEL HOGAR · PERFUMES IMPORTADOS", 105, 28, { align: "center" });
       doc.text("Atención al cliente:  11-53834227", 105, 34, { align: "center" });
       doc.text("@solecelll", 105, 40, { align: "center" });
-  
+
       // Línea separadora
       doc.setDrawColor(0, 0, 0);
       doc.line(10, 45, 200, 45);
-  
-      // Información del cliente
+  };
+
+  // Información del cliente
+  const addClientInfo = () => {
       doc.setFont("helvetica", "bold");
       doc.text("Fecha de entrega:", 10, 55);
       doc.setFont("helvetica", "normal");
       doc.text(formatDate(new Date(sale.saleDate)) || "N/A", 50, 55);
-  
+
       doc.setFont("helvetica", "bold");
       doc.text("Nombre:", 10, 65);
       doc.setFont("helvetica", "normal");
       doc.text(sale.clientName || "N/A", 50, 65);
-  
+
       doc.setFont("helvetica", "bold");
       doc.text("Dirección:", 10, 75);
       doc.setFont("helvetica", "normal");
       doc.text(".....", 50, 75);
-  
+
       doc.setFont("helvetica", "bold");
       doc.text("Teléfono:", 10, 85);
       doc.setFont("helvetica", "normal");
       doc.text(sale.phone || "N/A", 50, 85);
-  
+
       doc.setFont("helvetica", "bold");
       doc.text("Productos:", 10, 95);
       doc.setFont("helvetica", "normal");
       doc.text(sale.product || "N/A", 50, 95);
-  
+
       doc.setFont("helvetica", "bold");
       doc.text("Cuota:", 10, 105);
       doc.setFont("helvetica", "normal");
       doc.text(sale.periodicity || "N/A", 50, 105);
-  
+
       doc.setFont("helvetica", "bold");
       doc.text("Observaciones:", 10, 115);
       doc.setFont("helvetica", "normal");
       doc.text(".....", 50, 115);
-  
-      // Tabla de pagos
-      const startY = 125;
-      const lineHeight = 10;
-      const colX = [10, 30, 80, 120, 160]; // Posiciones x de las columnas
-      const tableWidth = 190;
-  
-      // Dibujar encabezados de tabla
-      doc.setFont("helvetica", "bold");
-      doc.text("N°", colX[0] + 2, startY + 5);
-      doc.text("FECHA", colX[1] + 5, startY + 5);
-      doc.text("DESDE", colX[2] + 5, startY + 5);
-      doc.text("PAGO", colX[3] + 5, startY + 5);
-      doc.text("SALDO", colX[4] + 5, startY + 5);
-  
-      // Dibujar bordes de la tabla
-      doc.setDrawColor(0, 0, 0);
-      doc.rect(10, startY, tableWidth, lineHeight); // Encabezado
-  
-      // Variables de cálculo
-      const payments = sale.payments || 0;
-      const paymentAmount = Math.round(sale.total / payments);
-      let saldo = sale.total;
-  
-      const startDate = new Date(sale.saleDate);
-  
-      for (let i = 0; i < payments; i++) {
-          const y = startY + lineHeight * (i + 1);
-  
-          // Calcular la fecha de la cuota
-          let paymentDate = new Date(startDate);
-          if (sale.periodicity.toLowerCase() === "mensual") {
-              paymentDate.setMonth(startDate.getMonth() + i);
-          } else if (sale.periodicity.toLowerCase() === "quincenal") {
-              paymentDate.setDate(startDate.getDate() + i * 15);
-          } else if (sale.periodicity.toLowerCase() === "semanal") {
-              paymentDate.setDate(startDate.getDate() + i * 7);
-          }
-  
-          const formattedDate = formatDate(paymentDate); // Formatear fecha
-          saldo -= paymentAmount;
-  
-          // Dibujar filas
-          doc.setFont("helvetica", "normal");
-          doc.text(`${i + 1}`, colX[0] + 2, y + 5);
-          doc.text(formattedDate, colX[1] + 5, y + 5);
-          doc.text("...", colX[2] + 5, y + 5); // Agregar lógica si es necesario
-          doc.text(`$${paymentAmount.toLocaleString("es-AR")}`, colX[3] + 5, y + 5);
-          doc.text(`$${saldo.toLocaleString("es-AR")}`, colX[4] + 5, y + 5);
-  
-          // Dibujar borde de cada fila
-          doc.rect(10, y, tableWidth, lineHeight);
-      }
-  
-        if (!window.pdfOpened) {
-          window.pdfOpened = true; // Evita más aperturas
-          setTimeout(() => {
-              window.open(doc.output("bloburl"), "_blank");
-              window.pdfOpened = false; // Restablecer después de abrir
-          }, 500);
-      }
   };
+
+  // Configuración de la tabla
+  const lineHeight = 10;
+  const colX = [10, 30, 80, 120, 160]; // Posiciones X de las columnas
+  const tableWidth = 190;
+  const maxRowsPerPage = 16; // Máximo de filas antes de agregar una nueva página
+  let currentPageRows = 0;
+  let yPosition = 125;
+
+  // Función para agregar encabezados de tabla
+  const addTableHeader = () => {
+      doc.setFont("helvetica", "bold");
+      doc.text("N°", colX[0] + 2, yPosition + 5);
+      doc.text("FECHA", colX[1] + 5, yPosition + 5);
+      doc.text("DESDE", colX[2] + 5, yPosition + 5);
+      doc.text("PAGO", colX[3] + 5, yPosition + 5);
+      doc.text("SALDO", colX[4] + 5, yPosition + 5);
+      doc.rect(10, yPosition, tableWidth, lineHeight); // Encabezado de la tabla
+  };
+
+  // Inicializar el PDF
+  addHeader();
+  addClientInfo();
+  addTableHeader();
+
+  let saldo = sale.total;
+  const payments = sale.payments || 0;
+  const paymentAmount = Math.round(sale.total / payments);
+  const startDate = new Date(sale.saleDate);
+
+  for (let i = 0; i < payments; i++) {
+      yPosition += lineHeight;
+
+      // Verificar si hay que agregar una nueva página
+      if (currentPageRows >= maxRowsPerPage) {
+          doc.addPage();
+          yPosition = 20; // Reiniciar la posición en la nueva página
+          currentPageRows = 0;
+
+          // Agregar encabezado y tabla en la nueva página
+          
+          yPosition += 10;
+          addTableHeader();
+          yPosition += lineHeight;
+      }
+
+      // Calcular la fecha de la cuota
+      let paymentDate = new Date(startDate);
+      if (sale.periodicity.toLowerCase() === "mensual") {
+          paymentDate.setMonth(startDate.getMonth() + i);
+      } else if (sale.periodicity.toLowerCase() === "quincenal") {
+          paymentDate.setDate(startDate.getDate() + i * 15);
+      } else if (sale.periodicity.toLowerCase() === "semanal") {
+          paymentDate.setDate(startDate.getDate() + i * 7);
+      }
+
+      const formattedDate = formatDate(paymentDate); // Formatear fecha
+      saldo -= paymentAmount;
+
+      // Dibujar fila
+      doc.setFont("helvetica", "normal");
+      doc.text(`${i + 1}`, colX[0] + 2, yPosition + 5);
+      doc.text(formattedDate, colX[1] + 5, yPosition + 5);
+      doc.text("...", colX[2] + 5, yPosition + 5);
+      doc.text(`$${paymentAmount.toLocaleString("es-AR")}`, colX[3] + 5, yPosition + 5);
+      doc.text(`$${saldo.toLocaleString("es-AR")}`, colX[4] + 5, yPosition + 5);
+
+      // Dibujar borde de la fila
+      doc.rect(10, yPosition, tableWidth, lineHeight);
+
+      currentPageRows++;
+  }
+
+  if (!window.pdfOpened) {
+      window.pdfOpened = true; // Evita múltiples aperturas
+      setTimeout(() => {
+          window.open(doc.output("bloburl"), "_blank");
+          window.pdfOpened = false; // Restablecer después de abrir
+      }, 500);
+  }
+};
 
 
   const deleteSale = async (id) => {
