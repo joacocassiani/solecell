@@ -333,8 +333,13 @@ document.addEventListener("DOMContentLoaded", async () => {
           doc.rect(10, y, tableWidth, lineHeight);
       }
   
-      // Guardar PDF
-      doc.save(`Ficha-${sale.clientName}.pdf`);
+        if (!window.pdfOpened) {
+          window.pdfOpened = true; // Evita más aperturas
+          setTimeout(() => {
+              window.open(doc.output("bloburl"), "_blank");
+              window.pdfOpened = false; // Restablecer después de abrir
+          }, 500);
+      }
   };
 
 
