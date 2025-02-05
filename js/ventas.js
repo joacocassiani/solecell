@@ -220,8 +220,10 @@ const generatePDF = (sale) => {
   const { jsPDF } = window.jspdf;
   const doc = new jsPDF();
 
-  // Función para formatear fecha a DD/MM/AAAA
-  const formatDate = (date) => {
+  // Función para formatear fecha correctamente en zona horaria local
+  const formatDate = (dateString) => {
+      const date = new Date(dateString);
+      date.setMinutes(date.getMinutes() + date.getTimezoneOffset()); // 🔹 Corrige desfase de zona horaria
       const day = String(date.getDate()).padStart(2, "0");
       const month = String(date.getMonth() + 1).padStart(2, "0");
       const year = date.getFullYear();
@@ -250,7 +252,7 @@ const generatePDF = (sale) => {
       doc.setFont("helvetica", "bold");
       doc.text("Fecha de entrega:", 10, 55);
       doc.setFont("helvetica", "normal");
-      doc.text(formatDate(new Date(sale.saleDate)) || "N/A", 50, 55);
+      doc.text(formatDate(sale.saleDate) || "N/A", 50, 55);
 
       doc.setFont("helvetica", "bold");
       doc.text("Nombre:", 10, 65);
@@ -321,14 +323,12 @@ const generatePDF = (sale) => {
           yPosition = 20; // Reiniciar la posición en la nueva página
           currentPageRows = 0;
 
-          // Agregar encabezado y tabla en la nueva página
-          
           yPosition += 10;
           addTableHeader();
           yPosition += lineHeight;
       }
 
-      // Calcular la fecha de la cuota
+      // Calcular la fecha de la cuota sin restar un día
       let paymentDate = new Date(startDate);
       if (sale.periodicity.toLowerCase() === "mensual") {
           paymentDate.setMonth(startDate.getMonth() + i);
@@ -338,7 +338,9 @@ const generatePDF = (sale) => {
           paymentDate.setDate(startDate.getDate() + i * 7);
       }
 
-      const formattedDate = formatDate(paymentDate); // Formatear fecha
+      // 🔹 Convertir la fecha correctamente para evitar restas inesperadas
+      const formattedDate = formatDate(paymentDate.toISOString().split("T")[0]);
+
       saldo -= paymentAmount;
 
       // Dibujar fila
@@ -363,7 +365,6 @@ const generatePDF = (sale) => {
       }, 500);
   }
 };
-
 
   const deleteSale = async (id) => {
     try {

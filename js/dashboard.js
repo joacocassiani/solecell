@@ -1,7 +1,6 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.15.0/firebase-app.js";
 import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/9.15.0/firebase-firestore.js";
 
-
 // Configuración de Firebase
 const firebaseConfig = {
   apiKey: "AIzaSyB-6CBhIb2PPPoY1Bdw59Qrmre2sGLDWaQ",
@@ -15,13 +14,13 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-const today = new Date().toISOString().split("T")[0];
-
 document.addEventListener("DOMContentLoaded", async () => {
+  //const today = new Date();
+  //today.setHours(0, 0, 0, 0);
+  //const todayFormatted = today.toISOString().split("T")[0];
 
-  
-  const salesCollection = collection(db, "sales"); // Conexión a la colección "sales"
-  const querySnapshot = await getDocs(salesCollection); // Obtener datos desde Firebase
+  const salesCollection = collection(db, "sales");
+  const querySnapshot = await getDocs(salesCollection);
 
   const sales = querySnapshot.docs.map((doc) => ({
     id: doc.id,
@@ -43,12 +42,13 @@ document.addEventListener("DOMContentLoaded", async () => {
   let totalPendiente = 0;
   let pagosHoy = 0;
   let totalPaymentsToday = 0;
-  let marceloPaymentsToday = 0; // Total Marcelo hoy
-  let coloPaymentsToday = 0; // Total Colo hoy
+  let marceloPaymentsToday = 0;
+  let coloPaymentsToday = 0;
   let gananciaMarcelo = 0;
   let gananciaColo = 0;
 
-  // Procesar cada venta
+  todayPaymentsList.innerHTML = ""; // Limpiar lista antes de agregar elementos
+
   sales.forEach((sale) => {
     const saleDate = new Date(sale.saleDate);
     const payments = sale.payments || 0;
@@ -56,38 +56,40 @@ document.addEventListener("DOMContentLoaded", async () => {
     const cost = Number(sale.productCost) || 0;
     const total = Number(sale.total) || 0;
 
-    // Calcular la ganancia de Marcelo y Colo
-    const gananciaMarceloVenta = ((total - cost) * 0.5) + cost;
-    const gananciaColoVenta = total - gananciaMarceloVenta;
-
-    gananciaMarcelo += gananciaMarceloVenta;
-    gananciaColo += gananciaColoVenta;
-
-    // Inicializar total pendiente y cobrado dinámico
     let totalPagosPendientes = 0;
     let totalPagosRealizados = 0;
+    let gananciaMarceloPendiente = 0;
+    let gananciaColoPendiente = 0;
 
-    // Calcular los pagos realizados y pendientes
     for (let i = 0; i < payments; i++) {
-      const paymentDate = new Date(sale.saleDate);
+      const paymentDate = new Date(saleDate);
 
-      if (periodicity === "Semanal") paymentDate.setDate(paymentDate.getDate() + i * 7);
-      if (periodicity === "Quincenal") paymentDate.setDate(paymentDate.getDate() + i * 15);
-      if (periodicity === "Mensual") paymentDate.setMonth(paymentDate.getMonth() + i);
+      if (periodicity === "Semanal") paymentDate.setDate(saleDate.getDate() + i * 7);
+      if (periodicity === "Quincenal") paymentDate.setDate(saleDate.getDate() + i * 15);
+      if (periodicity === "Mensual") paymentDate.setMonth(saleDate.getMonth() + i);
+
+      //paymentDate.setHours(0, 0, 0, 0);
+      //const formattedPaymentDate = paymentDate.toISOString().split("T")[0];
 
       const paymentAmount = total / payments;
 
-      if (paymentDate.toISOString().split("T")[0] === today) {
+      if (paymentDate.toISOString().split("T")[0] < today) {
         totalPagosRealizados += paymentAmount;
       } else {
         totalPagosPendientes += paymentAmount;
+
+        // Calcular ganancias de pagos pendientes
+        const marceloShare = ((paymentAmount - cost / payments) * 0.5) + (cost / payments);
+        const coloShare = paymentAmount - marceloShare;
+
+        gananciaMarceloPendiente += marceloShare;
+        gananciaColoPendiente += coloShare;
       }
 
       if (paymentDate.toISOString().split("T")[0] === today) {
         pagosHoy++;
         totalPaymentsToday += paymentAmount;
 
-        // Calcular cuánto corresponde a Marcelo y Colo para este pago
         const marceloShare = ((paymentAmount - cost / payments) * 0.5) + (cost / payments);
         const coloShare = paymentAmount - marceloShare;
 
@@ -96,8 +98,8 @@ document.addEventListener("DOMContentLoaded", async () => {
 
         const paymentItem = document.createElement("li");
         paymentItem.innerHTML = `
-          <span>${sale.clientName}</span>: $${Math.round(paymentAmount).toLocaleString("es-AR")} - ${sale.product} 
-          
+          <span>${sale.clientName}</span>: 
+          $${Math.round(paymentAmount).toLocaleString("es-AR")} - ${sale.product} 
           (Marcelo: $${Math.round(marceloShare).toLocaleString("es-AR")}, Colo: $${Math.round(coloShare).toLocaleString("es-AR")})
           <button class="whatsapp-button" data-phone="${sale.phone}" data-name="${sale.clientName}" data-amount="${Math.round(paymentAmount)}" title="Enviar mensaje por WhatsApp">📞</button>
         `;
@@ -105,19 +107,19 @@ document.addEventListener("DOMContentLoaded", async () => {
       }
     }
 
-    // Sumar al total cobrado o pendiente general
     totalCobrado += totalPagosRealizados;
     totalPendiente += totalPagosPendientes;
+    gananciaMarcelo += gananciaMarceloPendiente;
+    gananciaColo += gananciaColoPendiente;
   });
 
-  // Si no hay pagos hoy, mostrar mensaje
   if (pagosHoy === 0) {
     todayPaymentsList.innerHTML = "<li>No hay pagos programados para hoy.</li>";
   } else {
     const totalItem = document.createElement("li");
     totalItem.innerHTML = `
-      <strong>Total a cobrar hoy:</strong> $${Math.round(totalPaymentsToday).toLocaleString("es-AR")} 
-      
+      <strong>Total a cobrar hoy:</strong> 
+      $${Math.round(totalPaymentsToday).toLocaleString("es-AR")} 
       (Marcelo: $${Math.round(marceloPaymentsToday).toLocaleString("es-AR")}, Colo: $${Math.round(coloPaymentsToday).toLocaleString("es-AR")})
     `;
     todayPaymentsList.appendChild(totalItem);
@@ -131,92 +133,80 @@ document.addEventListener("DOMContentLoaded", async () => {
   gananciaColoEl.textContent = `$${Math.round(gananciaColo).toLocaleString("es-AR")}`;
 });
 
-document.addEventListener("DOMContentLoaded", () => {
-  const startDateInput = document.getElementById("startDate");
-  const endDateInput = document.getElementById("endDate");
-  const calculateButton = document.getElementById("calculateRangeProfit");
-  const rangeProfitResult = document.getElementById("rangeProfitResult");
+/*
+document.addEventListener("DOMContentLoaded", async () => {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const todayFormatted = today.toISOString().split("T")[0]; // Formato YYYY-MM-DD
 
-  const normalizeDate = (date) => {
-    const d = new Date(date);
-    return new Date(d.getFullYear(), d.getMonth(), d.getDate());
-  };
+  const todayPaymentsList = document.getElementById("todayPaymentsList");
 
-  const calculateRangeProfit = async (startDate, endDate) => {
-    // Normalizar fechas
-    const normalizedStart = normalizeDate(startDate);
-    const normalizedEnd = normalizeDate(endDate);
+  try {
+    const salesSnapshot = await getDocs(collection(db, "sales"));
+    const sales = salesSnapshot.docs.map((doc) => doc.data());
 
-    // Variables para resultados
-    let totalCobrado = 0;
-    let marceloTotal = 0;
-    let coloTotal = 0;
+    let totalPaymentsToday = 0;
+    let marceloPaymentsToday = 0;
+    let coloPaymentsToday = 0;
 
-    try {
-      const salesSnapshot = await getDocs(collection(db, "sales"));
-      const sales = salesSnapshot.docs.map((doc) => doc.data());
+    todayPaymentsList.innerHTML = ""; // Limpiar lista antes de agregar elementos
 
-      // Iterar sobre las ventas
-      sales.forEach((sale) => {
-        const payments = sale.payments || 0;
-        const periodicity = sale.periodicity;
-        const cost = Number(sale.productCost) || 0;
-        const total = Number(sale.total) || 0;
+    sales.forEach((sale) => {
+      const payments = sale.payments || 0;
+      const periodicity = sale.periodicity;
+      const cost = Number(sale.productCost) || 0;
+      const total = Number(sale.total) || 0;
 
-        for (let i = 0; i < payments; i++) {
-          const paymentDate = new Date(sale.saleDate);
+      for (let i = 0; i < payments; i++) {
+        const paymentDate = new Date(sale.saleDate);
+        if (periodicity === "Semanal") paymentDate.setDate(paymentDate.getDate() + i * 7);
+        if (periodicity === "Quincenal") paymentDate.setDate(paymentDate.getDate() + i * 15);
+        if (periodicity === "Mensual") paymentDate.setMonth(paymentDate.getMonth() + i);
 
-          if (periodicity === "Semanal") paymentDate.setDate(paymentDate.getDate() + i * 7);
-          if (periodicity === "Quincenal") paymentDate.setDate(paymentDate.getDate() + i * 15);
-          if (periodicity === "Mensual") paymentDate.setMonth(paymentDate.getMonth() + i);
+        paymentDate.setHours(0, 0, 0, 0);
+        
+        const formattedPaymentDate = paymentDate.toISOString().split("T")[0]; // Comparar en formato UTC YYYY-MM-DD
 
-          const normalizedPaymentDate = normalizeDate(paymentDate);
+        if (formattedPaymentDate === todayFormatted) {
+          const paymentAmount = total / payments;
 
-          if (normalizedPaymentDate >= normalizedStart && normalizedPaymentDate <= normalizedEnd) {
-            const paymentAmount = total / payments;
+          const marceloShare = ((paymentAmount - cost / payments) * 0.5) + (cost / payments);
+          const coloShare = paymentAmount - marceloShare;
 
-            const marceloShare = ((paymentAmount - cost / payments) * 0.5) + (cost / payments);
-            const coloShare = paymentAmount - marceloShare;
+          totalPaymentsToday += paymentAmount;
+          marceloPaymentsToday += marceloShare;
+          coloPaymentsToday += coloShare;
 
-            totalCobrado += paymentAmount;
-            marceloTotal += marceloShare;
-            coloTotal += coloShare;
-          }
+          // Crear el elemento de la lista con los valores corregidos
+          const paymentItem = document.createElement("li");
+          paymentItem.innerHTML = `
+            <span>${sale.clientName}</span>: 
+            $${Math.round(paymentAmount).toLocaleString("es-AR")} - ${sale.product} 
+            (Marcelo: $${Math.round(marceloShare).toLocaleString("es-AR")}, Gaston: $${Math.round(coloShare).toLocaleString("es-AR")})
+            <button class="whatsapp-button" data-phone="${sale.phone}" data-name="${sale.clientName}" data-amount="${Math.round(paymentAmount)}" title="Enviar mensaje por WhatsApp">📞</button>
+          `;
+          todayPaymentsList.appendChild(paymentItem);
         }
-      });
+      }
+    });
 
-      // Mostrar resultados
-      rangeProfitResult.innerHTML = `
-        <p><strong>Total Cobrado:</strong> $${Math.round(totalCobrado).toLocaleString("es-AR")}</p>
-        <p><strong>Marcelo:</strong> $${Math.round(marceloTotal).toLocaleString("es-AR")}</p>
-        <p><strong>Colo:</strong> $${Math.round(coloTotal).toLocaleString("es-AR")}</p>
+    if (totalPaymentsToday === 0) {
+      todayPaymentsList.innerHTML = "<li>No hay pagos programados para hoy.</li>";
+    } else {
+      const totalItem = document.createElement("li");
+      totalItem.innerHTML = `
+        <strong>Total a cobrar hoy:</strong> 
+        $${Math.round(totalPaymentsToday).toLocaleString("es-AR")} 
+        (Marcelo: $${Math.round(marceloPaymentsToday).toLocaleString("es-AR")}, Gaston: $${Math.round(coloPaymentsToday).toLocaleString("es-AR")})
       `;
-    } catch (error) {
-      console.error("Error calculando ganancias:", error);
-      rangeProfitResult.innerHTML = `<p>Error al calcular las ganancias.</p>`;
+      todayPaymentsList.appendChild(totalItem);
     }
-  };
-
-  calculateButton.addEventListener("click", () => {
-    const startDate = startDateInput.value;
-    const endDate = endDateInput.value;
-
-    if (!startDate || !endDate) {
-      alert("Por favor, seleccione un rango de fechas.");
-      return;
-    }
-
-    const parsedStartDate = new Date(startDate);
-    const parsedEndDate = new Date(endDate);
-
-    if (parsedStartDate > parsedEndDate) {
-      alert("La fecha de inicio no puede ser mayor a la fecha de fin.");
-      return;
-    }
-
-    calculateRangeProfit(parsedStartDate, parsedEndDate);
-  });
+  } catch (error) {
+    console.error("Error cargando pagos a cobrar hoy:", error);
+    todayPaymentsList.innerHTML = "<li>Error al cargar los datos.</li>";
+  }
 });
+*/
 
 todayPaymentsList.addEventListener("click", (e) => {
   if (e.target.classList.contains("whatsapp-button")) {
@@ -234,36 +224,5 @@ todayPaymentsList.addEventListener("click", (e) => {
       alert("Número de teléfono no disponible.");
     }
   }
-});
-
-document.addEventListener("DOMContentLoaded", () => {
-  const sendAllWhatsAppBtn = document.getElementById("sendAllWhatsApp");
-  const todayPaymentsList = document.getElementById("todayPaymentsList");
-
-  // Manejar clic en el botón para enviar mensajes a todos
-  sendAllWhatsAppBtn.addEventListener("click", () => {
-    const paymentButtons = todayPaymentsList.querySelectorAll(".whatsapp-button");
-
-    if (paymentButtons.length === 0) {
-      alert("No hay pagos pendientes para hoy.");
-      return;
-    }
-
-    paymentButtons.forEach((button) => {
-      const phone = button.getAttribute("data-phone");
-      const name = button.getAttribute("data-name");
-      const amount = button.getAttribute("data-amount");
-
-      if (phone) {
-        const message = encodeURIComponent(
-          `Hola ${name}, le recordamos que hoy tiene un pago pendiente de $${amount}.`
-        );
-        const whatsappURL = `https://wa.me/${phone}?text=${message}`;
-        window.open(whatsappURL, "_blank");
-      }
-    });
-
-    alert("Se han enviado los mensajes a todos los clientes con pagos pendientes hoy.");
-  });
 });
 
