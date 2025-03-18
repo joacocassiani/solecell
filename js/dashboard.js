@@ -1,5 +1,5 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.15.0/firebase-app.js";
-import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/9.15.0/firebase-firestore.js";
+import { getFirestore, collection, getDocs, getDoc, doc, deleteDoc, updateDoc, setDoc  } from "https://www.gstatic.com/firebasejs/9.15.0/firebase-firestore.js";
 
 // Configuración de Firebase
 const firebaseConfig = {
@@ -14,7 +14,79 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
+const loadDeletedSales = async () => {
+  const deletedSalesList = document.getElementById("deletedSalesList"); // Asegúrate de tener un <div> con este ID en tu HTML
+  deletedSalesList.innerHTML = "<p>Cargando ventas eliminadas...</p>";
+
+  try {
+    const deletedSalesSnapshot = await getDocs(collection(db, "deleted_sales"));
+    const deletedSales = deletedSalesSnapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+
+    if (deletedSales.length === 0) {
+      deletedSalesList.innerHTML = "<p>No hay ventas eliminadas.</p>";
+      return;
+    }
+
+    deletedSalesList.innerHTML = ""; // Limpiar antes de agregar elementos
+
+    deletedSales.forEach((sale) => {
+      const saleItem = document.createElement("div");
+      saleItem.classList.add("deleted-sale-item");
+
+      // ✅ Validar que sale.total no sea undefined antes de llamar .toLocaleString()
+      const totalFormatted = sale.total ? `$${sale.total.toLocaleString("es-AR")}` : "Monto no disponible";
+
+      saleItem.innerHTML = `
+        <p><strong>${sale.clientName || "Cliente desconocido"}</strong> - ${sale.product || "Producto desconocido"} - ${totalFormatted}</p>
+        <button class="restore-sale-btn" data-id="${sale.id}">Restaurar</button>
+      `;
+
+      deletedSalesList.appendChild(saleItem);
+    });
+
+    // Agregar eventos a los botones de restauración
+    document.querySelectorAll(".restore-sale-btn").forEach((button) => {
+      button.addEventListener("click", async (e) => {
+        const saleId = e.target.getAttribute("data-id");
+        restoreSale(saleId);
+      });
+    });
+  } catch (error) {
+    console.error("Error al cargar ventas eliminadas:", error);
+    deletedSalesList.innerHTML = "<p>Error al cargar las ventas eliminadas.</p>";
+  }
+};
+
+// Función para restaurar una venta eliminada
+const restoreSale = async (saleId) => {
+  try {
+    const saleDoc = await getDocs(collection(db, "deleted_sales"));
+    const saleData = saleDoc.docs.find((doc) => doc.id === saleId)?.data();
+
+    if (!saleData) {
+      alert("No se encontró la venta.");
+      return;
+    }
+
+    // Agregar la venta nuevamente a la colección "sales"
+    await setDoc(doc(db, "sales", saleId), saleData);
+
+    // Eliminar la venta de "deleted_sales"
+    await deleteDoc(doc(db, "deleted_sales", saleId));
+
+    alert("Venta restaurada con éxito.");
+    loadDeletedSales(); // Recargar la lista de ventas eliminadas
+  } catch (error) {
+    console.error("Error al restaurar la venta:", error);
+    alert("Error al restaurar la venta.");
+  }
+};
+
+// Cargar las ventas eliminadas al cargar la página
+document.addEventListener("DOMContentLoaded", loadDeletedSales);
+
 document.addEventListener("DOMContentLoaded", async () => {
+
   //const today = new Date();
   //today.setHours(0, 0, 0, 0);
   //const todayFormatted = today.toISOString().split("T")[0];

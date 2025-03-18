@@ -1,5 +1,5 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.15.0/firebase-app.js";
-import { getFirestore, collection, getDocs, doc, deleteDoc, updateDoc  } from "https://www.gstatic.com/firebasejs/9.15.0/firebase-firestore.js";
+import { getFirestore, collection, getDocs, getDoc, doc, deleteDoc, updateDoc, setDoc  } from "https://www.gstatic.com/firebasejs/9.15.0/firebase-firestore.js";
 
 
 // Configuración de Firebase
@@ -366,20 +366,42 @@ const generatePDF = (sale) => {
   }
 };
 
-  const deleteSale = async (id) => {
-    try {
-      // Eliminar el documento de Firestore
-      await deleteDoc(doc(db, "sales", id));
-      // Filtrar las ventas para eliminar del estado local
-      sales = sales.filter((sale) => sale.id !== id);
-      // Volver a renderizar las ventas
-      renderSales();
-      alert("Venta eliminada correctamente.");
-    } catch (error) {
-      console.error("Error al eliminar la venta:", error);
-      alert("Hubo un problema al eliminar la venta.");
+// 🔹 Función para eliminar una venta (mover a "deleted_sales")
+const deleteSale = async (saleId) => {
+  try {
+    const saleDocRef = doc(db, "sales", saleId); // Referencia en "sales"
+    const saleDocSnap = await getDoc(saleDocRef);
+
+    if (!saleDocSnap.exists()) {
+      alert("Error: La venta no existe.");
+      return;
     }
-  };
+
+    const saleData = saleDocSnap.data();
+
+    // 🔹 Guardar en "deleted_sales"
+    const deletedSaleDocRef = doc(db, "deleted_sales", saleId);
+    await setDoc(deletedSaleDocRef, saleData);
+
+    // 🔹 Verificar que la copia se realizó correctamente antes de eliminar
+    const verifyDeleteSnap = await getDoc(deletedSaleDocRef);
+    if (!verifyDeleteSnap.exists()) {
+      alert("Error: No se pudo mover la venta a eliminados.");
+      return;
+    }
+
+    // 🔹 Eliminar de "sales"
+    await deleteDoc(saleDocRef);
+
+    alert("Venta eliminada y movida a 'Eliminados'. Puedes restaurarla desde la página de Inicio.");
+
+    // Recargar la lista de ventas para reflejar el cambio
+    loadSales(); 
+  } catch (error) {
+    console.error("Error al eliminar la venta:", error);
+    //alert("Hubo un error al eliminar la venta.");
+  }
+};
 
 
   // Manejo de clics en los botones de acción
