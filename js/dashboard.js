@@ -170,6 +170,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
         const paymentItem = document.createElement("li");
         paymentItem.innerHTML = `
+          <input type="checkbox" class="payment-checkbox">
           <span>${sale.clientName}</span>: 
           $${Math.round(paymentAmount).toLocaleString("es-AR")} - ${sale.product} 
           (Marcelo: $${Math.round(marceloShare).toLocaleString("es-AR")}, Colo: $${Math.round(coloShare).toLocaleString("es-AR")})
