@@ -80,14 +80,41 @@ document.addEventListener("DOMContentLoaded", () => {
       `;
       paymentTableBody.appendChild(row);
     });
+
+        // Calcular total
+        const totalAmount = filteredPayments.reduce((acc, curr) => {
+          return acc + parseFloat(curr.amount);
+        }, 0);
+      
+        // Agregar fila de total al final
+        const totalRow = document.createElement("tr");
+        totalRow.innerHTML = `
+          <td><strong>TOTAL</strong></td>
+          <td><strong>$${Math.round(totalAmount).toLocaleString("es-AR")}</strong></td>
+          <td></td>
+          <td></td>
+        `;
+        paymentTableBody.appendChild(totalRow);
   };
 
   // Exportar tabla a Excel
-  const exportToExcel = () => {
-    const workbook = XLSX.utils.table_to_book(document.getElementById("paymentTable"), { sheet: "Cobranza" });
-    XLSX.writeFile(workbook, "Cobranza.xlsx");
-  };
 
+  const exportToExcel = () => {
+
+    const startDate = document.getElementById("startDate").value;
+    const endDate = document.getElementById("endDate").value;
+
+        // Formatear fechas a DD-MM-YYYY
+    const formatDate = (isoDate) => {
+      const [year, month, day] = isoDate.split("-");
+      return `${day}-${month}-${year}`;
+    };
+
+    const fileName = `Cobranza_${formatDate(startDate)}_a_${formatDate(endDate)}.xlsx`;
+
+    const workbook = XLSX.utils.table_to_book(document.getElementById("paymentTable"), { sheet: "Cobranza" });
+    XLSX.writeFile(workbook, fileName);
+  };
   // Evento para generar la tabla
   generateButton.addEventListener("click", async () => {
     const startDate = startDateInput.value;
