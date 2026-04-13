@@ -62,6 +62,7 @@ document.addEventListener("DOMContentLoaded", () => {
       productCost: cost, // Capturar costo
       total,
       phone,
+      createdAt: new Date().toISOString(), // Fecha y hora exacta de creación
     };
 
     try {

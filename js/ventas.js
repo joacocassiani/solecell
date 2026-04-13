@@ -31,11 +31,37 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   let sales = [];
 
-  // Función para obtener ventas desde Firestore
+  // Función para obtener ventas desde Firestore y ordenarlas por fecha de creación
   const fetchSales = async () => {
     const salesCollection = collection(db, "sales");
     const salesSnapshot = await getDocs(salesCollection);
-    sales = salesSnapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+    const allSales = salesSnapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+
+    // Obtener la fecha de hoy en formato YYYY-MM-DD (zona horaria local)
+    const todayStr = new Date().toLocaleDateString("en-CA"); // "YYYY-MM-DD"
+
+    // Separar ventas de hoy y del resto
+    const todaySales = allSales.filter((s) => {
+      if (!s.createdAt) return false;
+      return s.createdAt.slice(0, 10) === todayStr;
+    });
+    const olderSales = allSales.filter((s) => {
+      if (!s.createdAt) return true; // sin createdAt van al final
+      return s.createdAt.slice(0, 10) !== todayStr;
+    });
+
+    // Ordenar cada grupo de más reciente a más antigua
+    const sortByCreatedAtDesc = (a, b) => {
+      const aTime = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+      const bTime = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+      return bTime - aTime;
+    };
+
+    todaySales.sort(sortByCreatedAtDesc);
+    olderSales.sort(sortByCreatedAtDesc);
+
+    // Ventas del día primero, luego el resto
+    sales = [...todaySales, ...olderSales];
   };
 
   // Función para determinar el estado de una venta
@@ -65,9 +91,22 @@ document.addEventListener("DOMContentLoaded", async () => {
       );
     });
 
+    // Helper: formatear fecha de creación
+    const formatCreatedAt = (isoStr) => {
+      if (!isoStr) return "-";
+      const d = new Date(isoStr);
+      const day   = String(d.getDate()).padStart(2, "0");
+      const month = String(d.getMonth() + 1).padStart(2, "0");
+      const year  = d.getFullYear();
+      const hours = String(d.getHours()).padStart(2, "0");
+      const mins  = String(d.getMinutes()).padStart(2, "0");
+      return `${day}/${month}/${year} ${hours}:${mins}`;
+    };
+
     // Procesar las ventas filtradas
     filteredSales.forEach((sale) => {
       const status = getSaleStatus(sale);
+      const createdAtFormatted = formatCreatedAt(sale.createdAt);
 
       // Contar las ventas según la periodicidad
       if (sale.periodicity && sale.periodicity.toLowerCase() === "mensual") {
@@ -95,6 +134,7 @@ document.addEventListener("DOMContentLoaded", async () => {
           <div><strong>Costo:</strong> $${Math.round(sale.productCost || 0).toLocaleString("es-AR")}</div>
           <div><strong>Venta:</strong> $${Math.round(sale.total || 0).toLocaleString("es-AR")}</div>
           <div><strong>Estado:</strong> ${status}</div>
+          <div><strong>Creado:</strong> ${createdAtFormatted}</div>
           <div class="action-buttons">
             <button class="pdf-sale" data-client='${JSON.stringify(sale)}'>🖨️ Ficha</button>
             <button class="edit-sale" data-id="${sale.id}">✏️</button>
@@ -118,6 +158,7 @@ document.addEventListener("DOMContentLoaded", async () => {
           <td>$${Math.round(sale.productCost || 0).toLocaleString("es-AR")}</td>
           <td>$${Math.round(sale.total || 0).toLocaleString("es-AR")}</td>
           <td>${status}</td>
+          <td>${createdAtFormatted}</td>
           <td>
             <button class="pdf-sale" data-client='${JSON.stringify(sale)}'>🖨️ Ficha</button>
             <button class="edit-sale" data-id="${sale.id}">✏️</button>

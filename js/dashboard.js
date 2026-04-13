@@ -87,215 +87,173 @@ document.addEventListener("DOMContentLoaded", loadDeletedSales);
 
 document.addEventListener("DOMContentLoaded", async () => {
 
-  //const today = new Date();
-  //today.setHours(0, 0, 0, 0);
-  //const todayFormatted = today.toISOString().split("T")[0];
-
-  const salesCollection = collection(db, "sales");
-  const querySnapshot = await getDocs(salesCollection);
-
-  const sales = querySnapshot.docs.map((doc) => ({
-    id: doc.id,
-    ...doc.data(),
-  }));
-
-  const today = new Date().toISOString().split("T")[0];
-
-  // Elementos donde se mostrarán los indicadores clave
-  const totalCobradoEl = document.getElementById("totalCobrado");
-  const totalPendienteEl = document.getElementById("totalPendiente");
-  const pagosHoyEl = document.getElementById("pagosHoy");
-  const todayPaymentsList = document.getElementById("todayPaymentsList");
-  const gananciaMarceloEl = document.getElementById("gananciaMarcelo");
-  const gananciaColoEl = document.getElementById("gananciaColo");
-
-  // Variables para cálculos
-  let totalCobrado = 0;
-  let totalPendiente = 0;
-  let pagosHoy = 0;
-  let totalPaymentsToday = 0;
-  let marceloPaymentsToday = 0;
-  let coloPaymentsToday = 0;
-  let gananciaMarcelo = 0;
-  let gananciaColo = 0;
-
-  todayPaymentsList.innerHTML = ""; // Limpiar lista antes de agregar elementos
-
-  sales.forEach((sale) => {
-    const saleDate = new Date(sale.saleDate);
-    const payments = sale.payments || 0;
-    const periodicity = sale.periodicity;
-    const cost = Number(sale.productCost) || 0;
-    const total = Number(sale.total) || 0;
-
-    let totalPagosPendientes = 0;
-    let totalPagosRealizados = 0;
-    let gananciaMarceloPendiente = 0;
-    let gananciaColoPendiente = 0;
-
-    for (let i = 0; i < payments; i++) {
-      const paymentDate = new Date(saleDate);
-
-      if (periodicity === "Semanal") paymentDate.setDate(saleDate.getDate() + i * 7);
-      if (periodicity === "Quincenal") paymentDate.setDate(saleDate.getDate() + i * 15);
-      if (periodicity === "Mensual") paymentDate.setMonth(saleDate.getMonth() + i);
-
-      //paymentDate.setHours(0, 0, 0, 0);
-      //const formattedPaymentDate = paymentDate.toISOString().split("T")[0];
-
-      const paymentAmount = total / payments;
-
-      if (paymentDate.toISOString().split("T")[0] < today) {
-        totalPagosRealizados += paymentAmount;
-      } else {
-        totalPagosPendientes += paymentAmount;
-
-        // Calcular ganancias de pagos pendientes
-        const marceloShare = ((paymentAmount - cost / payments) * 0.5) + (cost / payments);
-        const coloShare = paymentAmount - marceloShare;
-
-        gananciaMarceloPendiente += marceloShare;
-        gananciaColoPendiente += coloShare;
-      }
-
-      if (paymentDate.toISOString().split("T")[0] === today) {
-        pagosHoy++;
-        totalPaymentsToday += paymentAmount;
-
-        const marceloShare = ((paymentAmount - cost / payments) * 0.5) + (cost / payments);
-        const coloShare = paymentAmount - marceloShare;
-
-        marceloPaymentsToday += marceloShare;
-        coloPaymentsToday += coloShare;
-
-        const paymentItem = document.createElement("li");
-        paymentItem.innerHTML = `
-          <input type="checkbox" class="payment-checkbox">
-          <span>${sale.clientName}</span>: 
-          $${Math.round(paymentAmount).toLocaleString("es-AR")} - ${sale.product} 
-          (Marcelo: $${Math.round(marceloShare).toLocaleString("es-AR")}, Colo: $${Math.round(coloShare).toLocaleString("es-AR")})
-          <button class="whatsapp-button" data-phone="${sale.phone}" data-name="${sale.clientName}" data-amount="${Math.round(paymentAmount)}" title="Enviar mensaje por WhatsApp">📞</button>
-        `;
-        todayPaymentsList.appendChild(paymentItem);
-      }
-    }
-
-    totalCobrado += totalPagosRealizados;
-    totalPendiente += totalPagosPendientes;
-    gananciaMarcelo += gananciaMarceloPendiente;
-    gananciaColo += gananciaColoPendiente;
-  });
-
-  if (pagosHoy === 0) {
-    todayPaymentsList.innerHTML = "<li>No hay pagos programados para hoy.</li>";
-  } else {
-    const totalItem = document.createElement("li");
-    totalItem.innerHTML = `
-      <strong>Total a cobrar hoy:</strong> 
-      $${Math.round(totalPaymentsToday).toLocaleString("es-AR")} 
-      (Marcelo: $${Math.round(marceloPaymentsToday).toLocaleString("es-AR")}, Colo: $${Math.round(coloPaymentsToday).toLocaleString("es-AR")})
-    `;
-    todayPaymentsList.appendChild(totalItem);
-  }
-
-  // Actualizar los elementos en el DOM
-  totalCobradoEl.textContent = `$${Math.round(totalCobrado).toLocaleString("es-AR")}`;
-  totalPendienteEl.textContent = `$${Math.round(totalPendiente).toLocaleString("es-AR")}`;
-  pagosHoyEl.textContent = pagosHoy;
-  gananciaMarceloEl.textContent = `$${Math.round(gananciaMarcelo).toLocaleString("es-AR")}`;
-  gananciaColoEl.textContent = `$${Math.round(gananciaColo).toLocaleString("es-AR")}`;
-});
-
-/*
-document.addEventListener("DOMContentLoaded", async () => {
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  const todayFormatted = today.toISOString().split("T")[0]; // Formato YYYY-MM-DD
-
+  const totalCobradoEl    = document.getElementById("totalCobrado");
+  const totalPendienteEl  = document.getElementById("totalPendiente");
+  const pagosHoyEl        = document.getElementById("pagosHoy");
   const todayPaymentsList = document.getElementById("todayPaymentsList");
 
-  try {
-    const salesSnapshot = await getDocs(collection(db, "sales"));
-    const sales = salesSnapshot.docs.map((doc) => doc.data());
+  // ─── Función principal (se puede volver a llamar tras reprogramar) ───────────
+  const loadDashboard = async () => {
+    const salesCollection = collection(db, "sales");
+    const querySnapshot   = await getDocs(salesCollection);
+    const sales = querySnapshot.docs.map((d) => ({ id: d.id, ...d.data() }));
 
+    const today = new Date().toISOString().split("T")[0]; // YYYY-MM-DD UTC
+
+    let totalCobrado       = 0;
+    let totalPendiente     = 0;
+    let pagosHoy           = 0;
     let totalPaymentsToday = 0;
-    let marceloPaymentsToday = 0;
-    let coloPaymentsToday = 0;
 
-    todayPaymentsList.innerHTML = ""; // Limpiar lista antes de agregar elementos
+    todayPaymentsList.innerHTML = ""; // limpiar lista
 
     sales.forEach((sale) => {
-      const payments = sale.payments || 0;
+      const saleDate    = new Date(sale.saleDate);
+      const payments    = sale.payments || 0;
       const periodicity = sale.periodicity;
-      const cost = Number(sale.productCost) || 0;
-      const total = Number(sale.total) || 0;
+      const total       = Number(sale.total) || 0;
+
+      let totalPagosPendientes  = 0;
+      let totalPagosRealizados  = 0;
 
       for (let i = 0; i < payments; i++) {
-        const paymentDate = new Date(sale.saleDate);
-        if (periodicity === "Semanal") paymentDate.setDate(paymentDate.getDate() + i * 7);
-        if (periodicity === "Quincenal") paymentDate.setDate(paymentDate.getDate() + i * 15);
-        if (periodicity === "Mensual") paymentDate.setMonth(paymentDate.getMonth() + i);
+        const paymentDate = new Date(saleDate);
 
-        paymentDate.setHours(0, 0, 0, 0);
-        
-        const formattedPaymentDate = paymentDate.toISOString().split("T")[0]; // Comparar en formato UTC YYYY-MM-DD
+        if (periodicity === "Semanal")   paymentDate.setDate(saleDate.getDate() + i * 7);
+        if (periodicity === "Quincenal") paymentDate.setDate(saleDate.getDate() + i * 15);
+        if (periodicity === "Mensual")   paymentDate.setMonth(saleDate.getMonth() + i);
 
-        if (formattedPaymentDate === todayFormatted) {
-          const paymentAmount = total / payments;
+        const paymentAmount  = total / payments;
+        const cuotaNum       = i + 1;
 
-          const marceloShare = ((paymentAmount - cost / payments) * 0.5) + (cost / payments);
-          const coloShare = paymentAmount - marceloShare;
+        // Usar fecha reprogramada si existe, si no la calculada
+        const computedDate   = paymentDate.toISOString().split("T")[0];
+        const effectiveDate  = (sale.rescheduled && sale.rescheduled[cuotaNum])
+          ? sale.rescheduled[cuotaNum]
+          : computedDate;
+        const isRescheduled  = !!(sale.rescheduled && sale.rescheduled[cuotaNum]);
 
+        if (effectiveDate < today) {
+          totalPagosRealizados += paymentAmount;
+        } else {
+          totalPagosPendientes += paymentAmount;
+        }
+
+        if (effectiveDate === today) {
+          pagosHoy++;
           totalPaymentsToday += paymentAmount;
-          marceloPaymentsToday += marceloShare;
-          coloPaymentsToday += coloShare;
 
-          // Crear el elemento de la lista con los valores corregidos
           const paymentItem = document.createElement("li");
+          paymentItem.dataset.saleId = sale.id;
+          paymentItem.dataset.cuota  = cuotaNum;
           paymentItem.innerHTML = `
-            <span>${sale.clientName}</span>: 
-            $${Math.round(paymentAmount).toLocaleString("es-AR")} - ${sale.product} 
-            (Marcelo: $${Math.round(marceloShare).toLocaleString("es-AR")}, Gaston: $${Math.round(coloShare).toLocaleString("es-AR")})
-            <button class="whatsapp-button" data-phone="${sale.phone}" data-name="${sale.clientName}" data-amount="${Math.round(paymentAmount)}" title="Enviar mensaje por WhatsApp">📞</button>
+            <input type="checkbox" class="payment-checkbox">
+            <span>${sale.clientName}</span>:
+            $${Math.round(paymentAmount).toLocaleString("es-AR")} - ${sale.product}
+            <em style="color:#aaa">(Cuota ${cuotaNum}/${payments}${isRescheduled ? " · 📅 Reprogramado" : ""})</em>
+            <button class="whatsapp-button"
+              data-phone="${sale.phone}"
+              data-name="${sale.clientName}"
+              data-amount="${Math.round(paymentAmount)}"
+              title="Enviar mensaje por WhatsApp">📞</button>
+            <button class="reschedule-btn"
+              title="Reprogramar esta cuota">📅 Reprogramar</button>
+            <span class="reschedule-form" style="display:none; margin-left:8px;">
+              <input type="date" class="reschedule-date" min="${today}">
+              <button class="reschedule-confirm">✔ Confirmar</button>
+              <button class="reschedule-cancel">✖ Cancelar</button>
+            </span>
           `;
           todayPaymentsList.appendChild(paymentItem);
         }
       }
+
+      totalCobrado   += totalPagosRealizados;
+      totalPendiente += totalPagosPendientes;
     });
 
-    if (totalPaymentsToday === 0) {
+    if (pagosHoy === 0) {
       todayPaymentsList.innerHTML = "<li>No hay pagos programados para hoy.</li>";
     } else {
       const totalItem = document.createElement("li");
+      totalItem.style.cssText = "font-weight:bold; margin-top:8px; border-top:1px solid #444; padding-top:6px;";
       totalItem.innerHTML = `
-        <strong>Total a cobrar hoy:</strong> 
-        $${Math.round(totalPaymentsToday).toLocaleString("es-AR")} 
-        (Marcelo: $${Math.round(marceloPaymentsToday).toLocaleString("es-AR")}, Gaston: $${Math.round(coloPaymentsToday).toLocaleString("es-AR")})
+        <strong>Total a cobrar hoy:</strong>
+        $${Math.round(totalPaymentsToday).toLocaleString("es-AR")}
       `;
       todayPaymentsList.appendChild(totalItem);
     }
-  } catch (error) {
-    console.error("Error cargando pagos a cobrar hoy:", error);
-    todayPaymentsList.innerHTML = "<li>Error al cargar los datos.</li>";
-  }
-});
-*/
 
-todayPaymentsList.addEventListener("click", (e) => {
-  if (e.target.classList.contains("whatsapp-button")) {
-    const phone = e.target.getAttribute("data-phone"); // Obtener número de teléfono
-    const name = e.target.getAttribute("data-name"); // Obtener nombre del cliente
-    const amount = e.target.getAttribute("data-amount"); // Obtener el monto del pago
+    totalCobradoEl.textContent   = `$${Math.round(totalCobrado).toLocaleString("es-AR")}`;
+    totalPendienteEl.textContent = `$${Math.round(totalPendiente).toLocaleString("es-AR")}`;
+    pagosHoyEl.textContent       = pagosHoy;
+  };
 
-    if (phone) {
-      const message = encodeURIComponent(
-        `Hola ${name}, le recordamos que hoy tiene un pago pendiente de $${amount}.`
-      );
-      const whatsappURL = `https://wa.me/${phone}?text=${message}`;
-      window.open(whatsappURL, "_blank"); // Abrir WhatsApp en una nueva pestaña
-    } else {
-      alert("Número de teléfono no disponible.");
+  await loadDashboard();
+
+  // ─── Event delegation sobre la lista ────────────────────────────────────────
+  todayPaymentsList.addEventListener("click", async (e) => {
+
+    // ── WhatsApp ──────────────────────────────────────────────────────────────
+    if (e.target.classList.contains("whatsapp-button")) {
+      const phone  = e.target.getAttribute("data-phone");
+      const name   = e.target.getAttribute("data-name");
+      const amount = e.target.getAttribute("data-amount");
+      if (phone) {
+        const message     = encodeURIComponent(`Hola ${name}, le recordamos que hoy tiene un pago pendiente de $${amount}.`);
+        const whatsappURL = `https://wa.me/${phone}?text=${message}`;
+        window.open(whatsappURL, "_blank");
+      } else {
+        alert("Número de teléfono no disponible.");
+      }
     }
-  }
+
+    // ── Mostrar formulario de reprogramación ──────────────────────────────────
+    if (e.target.classList.contains("reschedule-btn")) {
+      const li   = e.target.closest("li");
+      const form = li.querySelector(".reschedule-form");
+      form.style.display    = "inline";
+      e.target.style.display = "none";
+    }
+
+    // ── Cancelar reprogramación ───────────────────────────────────────────────
+    if (e.target.classList.contains("reschedule-cancel")) {
+      const li   = e.target.closest("li");
+      const form = li.querySelector(".reschedule-form");
+      const btn  = li.querySelector(".reschedule-btn");
+      form.style.display = "none";
+      btn.style.display  = "inline";
+    }
+
+    // ── Confirmar reprogramación ──────────────────────────────────────────────
+    if (e.target.classList.contains("reschedule-confirm")) {
+      const li      = e.target.closest("li");
+      const saleId  = li.dataset.saleId;
+      const cuota   = li.dataset.cuota;
+      const newDate = li.querySelector(".reschedule-date").value;
+
+      if (!newDate) {
+        alert("Por favor seleccioná una fecha.");
+        return;
+      }
+
+      try {
+        // Guarda solo esa cuota en el mapa "rescheduled" del documento
+        await updateDoc(doc(db, "sales", saleId), {
+          [`rescheduled.${cuota}`]: newDate,
+        });
+
+        // Formato DD/MM/YYYY para el mensaje
+        const [y, m, d] = newDate.split("-");
+        alert(`✅ Cuota reprogramada para el ${d}/${m}/${y}`);
+
+        await loadDashboard(); // recargar la lista
+      } catch (error) {
+        console.error("Error al reprogramar el pago:", error);
+        alert("Hubo un error al reprogramar el pago.");
+      }
+    }
+  });
+
 });
 
