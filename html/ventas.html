@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -9,6 +10,7 @@
   <link rel="icon" type="image/x-icon" href="../imagenes/logo.png">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.4.0/jspdf.umd.min.js"></script>
 </head>
+
 <body>
   <div class="dashboard-container">
     <div class="hamburger-menu" onclick="toggleSidebar()">
@@ -54,7 +56,7 @@
         </div>
         <div class="ventas-actions">
           <button class="new-sale-button" onclick="location.href='nueva-venta.html'">Nueva Venta</button>
-          
+
           <input type="text" id="searchInput" class="ventas-search" placeholder="Buscar...">
         </div>
         <div class="table-container">
@@ -73,6 +75,7 @@
                 <th>Costo</th>
                 <th>Venta</th>
                 <th>Estado</th>
+                <th>Creado</th>
                 <th>Acciones</th>
               </tr>
             </thead>
@@ -127,4 +130,5 @@
     }
   </script>
 </body>
+
 </html>
